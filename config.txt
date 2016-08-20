@@ -1,0 +1,30 @@
+inner_radius = 10.0
+outer_radius = 10.01
+cell_iterations = 40
+sigma_inner_cell =  0.0000002
+sigma_outer_cell = 0.00000015
+sigma_membrane = 0.000000000005
+
+cellX_center = 50.0
+cellY_center = 0.0
+
+potential = 5.0
+ground = 0.0
+
+membrane_layers = 2
+
+max_iterations = 10000
+tolerance = 0.000001
+output_path = ./
+
+funyoung_in = 0.0001
+funyoung_membrane = 0.1
+funyoung_out = 0.0001
+
+funposs_in = 0.49
+funposs_membrane = 0.49
+funposs_out = 0.49
+
+deformation_rep = 10
+
+file_sufix = TEST
