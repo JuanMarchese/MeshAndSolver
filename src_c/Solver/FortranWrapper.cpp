@@ -75,9 +75,8 @@ void FortranWrapper::copyCoordinatesData(){
 
 	for(ids_t i = 0;i < points.size();++i )
 	{
-		/*The mesh gener is transposed*/
-		__def_variables_MOD_coor_y[i] = points[i].getX();
-		__def_variables_MOD_coor_x[i] = points[i].getY();
+		__def_variables_MOD_coor_y[i] = points[i].getZ();
+		__def_variables_MOD_coor_x[i] = points[i].getR();
 
 	}
 
@@ -158,8 +157,8 @@ void FortranWrapper::solveDeformation(){
 	for(ids_t i = 0;i < points.size();++i )
 	{
 		/*The mesh gener is transposed*/
-		points[i].setY((coordinates_t)__def_variables_MOD_coor_x[i]);
-		points[i].setX((coordinates_t)__def_variables_MOD_coor_y[i]);
+		points[i].setR((coordinates_t)__def_variables_MOD_coor_x[i]);
+		points[i].setZ((coordinates_t)__def_variables_MOD_coor_y[i]);
 	}
 
 
@@ -188,15 +187,16 @@ void FortranWrapper::solveDeformation(){
 			coordinates_t nose = 0.0;
 			coordinates_t lado = 0.0;
 
-			coordinates_t x_value = quads[i].getPoint(0).getX() - quads[i].getPoint(1).getX();
-			coordinates_t y_value = quads[i].getPoint(0).getY() - quads[i].getPoint(1).getY();
+			coordinates_t x_value = quads[i].getPoint(0).getR() - quads[i].getPoint(1).getR();
+			coordinates_t y_value = quads[i].getPoint(0).getZ() - quads[i].getPoint(1).getZ();
+
 
 			lado = sqrt((x_value*x_value)+(y_value*y_value));
 
 			for(ids_t j = 0;j < 4;++j )
 			{
-				x += quads[i].getPoint(j).getX() / 4.0;
-				y += quads[i].getPoint(j).getY() / 4.0;
+				x += quads[i].getPoint(j).getR() / 4.0;
+				y += quads[i].getPoint(j).getZ() / 4.0;
 				r += __def_variables_MOD_tension[i + j*size + 0*size*4] / 4.0;
 				z += __def_variables_MOD_tension[i + j*size + 1*size*4] / 4.0;
 				tita += __def_variables_MOD_tension[i + j*size + 2*size*4] / 4.0;

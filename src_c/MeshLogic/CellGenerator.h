@@ -24,8 +24,8 @@ private:
 	coordinates_t innerRadius;
 	coordinates_t outerRadius;
 
-	coordinates_t cellXCenter;
-	coordinates_t cellYCenter;
+	coordinates_t cellZCenter;
+	coordinates_t cellRCenter;
 
 	index_t cellLayers;
 	index_t cellIterations;
@@ -85,10 +85,10 @@ private:
 							 index_t increment,
 							 index_t iterations,
 							 std::vector<Point>& vector,
-							 std::vector<coordinates_t> vectorX,
-							 std::vector<coordinates_t> vectorY,
-							 coordinates_t xSign,
-							 coordinates_t ySign,
+							 std::vector<coordinates_t> vectorZ,
+							 std::vector<coordinates_t> vectorR,
+							 coordinates_t zSign,
+							 coordinates_t rSign,
 							 bool addToData = true);
 
 	void generateInnerRadiusVector();

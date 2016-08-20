@@ -22,12 +22,12 @@ Data::Data():pointID(0),
 			 type_outer_cell(0),
 			 type_membrane(0),
 			 potential_density(0),
-			 maxX(0),
-			 maxY(0),
-			 minX(0),
-			 minY(0),
-			 centerX(0),
-			 centerY(0),
+			 maxZ(0),
+			 maxR(0),
+			 minZ(0),
+			 minR(0),
+			 centerZ(0),
+			 centerR(0),
 			 funyoung_in(0),
 			 funyoung_membrane(0),
 			 funyoung_out(0),
@@ -53,69 +53,6 @@ std::map<ids_t,std::vector<ids_t> >& Data::getPointToQuads(){
 	return pointToQuads;
 }
 
-void Data::fakeInit(){
-
-	coordinates_t innerRadius = 5.0;
-	coordinates_t outerRadius = 10.0;
-	coordinates_t centerX = 15.0;
-	coordinates_t centerY = 0.0;
-
-	coordinates_t angle = 0.0;
-	coordinates_t angleIncrement = 9.0;
-
-	coordinates_t innerX;
-	coordinates_t innerY;
-	coordinates_t outerX;
-	coordinates_t outerY;
-	coordinates_t cosResult;
-	coordinates_t sinResult;
-
-	std::vector<Point> innerPoints;
-	std::vector<Point> outerPoints;
-
-	maxX = 30;
-	maxY = 30;
-	minX = 0;
-	minY = 0;
-
-
-	for(angle = 0.0; angle <= 180.0; angle+=angleIncrement){
-
-		cosResult = cos(angle* 3.14159265 / 180.0 );
-		sinResult = sin(angle* 3.14159265 / 180.0 );
-
-		innerX = centerX + cosResult*innerRadius;
-		innerY = centerY + sinResult*innerRadius;
-
-		outerX = centerX + cosResult*outerRadius;
-		outerY = centerY + sinResult*outerRadius;
-
-		Point innerPoint(innerX,innerY);
-		Point outerPoint(outerX,outerY);
-
-		innerPoint.setID(pointID++);
-		outerPoint.setID(pointID++);
-
-		innerPoints.push_back(innerPoint);
-		outerPoints.push_back(outerPoint);
-
-		points[innerPoint.getID()] = innerPoint;
-		points[outerPoint.getID()] = outerPoint;
-	}
-
-	for(unsigned i = 0; i < innerPoints.size()-1;++i){
-		Quad newQuad(innerPoints[i],
-					 innerPoints[i+1],
-					 outerPoints[i+1],
-					 outerPoints[i],
-					 quadID++);
-
-		quads[newQuad.getID()] = newQuad;
-	}
-
-
-}
-
 void Data::setPath(const std::string& value){
 	path = value;
 }
@@ -123,17 +60,17 @@ std::string Data::getPath(){
 	return this->path;
 }
 
-coordinates_t Data::getMaxX(){
-	return maxX;
+coordinates_t Data::getMaxZ(){
+	return maxZ;
 }
-coordinates_t Data::getMaxY(){
-	return maxY;
+coordinates_t Data::getMaxR(){
+	return maxR;
 }
-coordinates_t Data::getMinX(){
-	return minX;
+coordinates_t Data::getMinZ(){
+	return minZ;
 }
-coordinates_t Data::getMinY(){
-	return minY;
+coordinates_t Data::getMinR(){
+	return minR;
 }
 
 void Data::setFileSufix(const std::string& sufix){
@@ -149,20 +86,20 @@ ids_t Data::addPoint(Point point){
 	points[point.getID()] = point;
 
 
-	coordinates_t x = point.getX();
-	coordinates_t y = point.getY();
+	coordinates_t z = point.getZ();
+	coordinates_t r = point.getR();
 
-	if(x < minX)
-		minX = x;
+	if(z < minZ)
+		minZ = z;
 
-	if(x > maxX)
-		maxX = x;
+	if(z > maxZ)
+		maxZ = z;
 
-	if(y < minY)
-		minY = y;
+	if(r < minR)
+		minR = r;
 
-	if(y > maxY)
-		maxY = y;
+	if(r > maxR)
+		maxR = r;
 
 	return point.getID();
 }
@@ -180,49 +117,49 @@ ids_t Data::addQuad(const Point& point1,const Point& point2,const Point& point3,
 	return addQuad(Quad(point1,point2,point3,point4),type);
 }
 
-void Data::setBoundaries(coordinates_t minX,coordinates_t maxX,coordinates_t minY,coordinates_t maxY){
-	this->minX = minX;
-	this->minY = minY;
-	this->maxX = maxX;
-	this->maxY = maxY;
+void Data::setBoundaries(coordinates_t minZ,coordinates_t maxZ,coordinates_t minR,coordinates_t maxR){
+	this->minZ = minZ;
+	this->minR = minR;
+	this->maxZ = maxZ;
+	this->maxR = maxR;
 
-	this->centerX = maxX / 2.0;
-	this->centerY = 0.0;
+	this->centerZ = maxZ / 2.0;
+	this->centerR = 0.0;
 }
 
-void Data::saveInFile(const std::string& Xfile,
-					  const std::string& Yfile,
+void Data::saveInFile(const std::string& Zfile,
+					  const std::string& Rfile,
 					  const std::string& QUADfile,
 					  const std::string& MaterialFile,
 					  const std::string& BoundaryFile,
 					  const std::string& SolutionFile,
 					  const std::string& MembranePotential){
 
-	std::ofstream x;
-	std::ofstream y;
+	std::ofstream z;
+	std::ofstream r;
 	std::ofstream quad;
 	std::ofstream material;
 	std::ofstream boundary;
 	std::ofstream solution;
 	std::ofstream membrane;
 	ids_t maxID = 0;
-	std::map<ids_t,coordinates_t> xMap;
-	std::map<ids_t,coordinates_t> yMap;
+	std::map<ids_t,coordinates_t> zMap;
+	std::map<ids_t,coordinates_t> rMap;
 
-	x.open(addPath(Xfile).c_str(), std::ios::out | std::ios::trunc);
-	y.open(addPath(Yfile).c_str(), std::ios::out | std::ios::trunc);
+	z.open(addPath(Zfile).c_str(), std::ios::out | std::ios::trunc);
+	r.open(addPath(Rfile).c_str(), std::ios::out | std::ios::trunc);
 	quad.open(addPath(QUADfile).c_str(), std::ios::out | std::ios::trunc);
 	material.open(addPath(MaterialFile).c_str(), std::ios::out | std::ios::trunc);
 	boundary.open(addPath(BoundaryFile).c_str(), std::ios::out | std::ios::trunc);
 	solution.open(addPath(SolutionFile).c_str(), std::ios::out | std::ios::trunc);
 	membrane.open(addPath(MembranePotential).c_str(), std::ios::out | std::ios::trunc);
 
-	x.precision(15);
-	y.precision(15);
+	z.precision(15);
+	r.precision(15);
 
 	for(std::map<ids_t,Point>::iterator it = this->points.begin();it != this->points.end();++it){
-		xMap[it->first] = it->second.getX();
-		yMap[it->first] = it->second.getY();
+		zMap[it->first] = it->second.getZ();
+		rMap[it->first] = it->second.getR();
 
 		if(it->second.getID() > maxID){
 			maxID = it->second.getID();
@@ -230,8 +167,8 @@ void Data::saveInFile(const std::string& Xfile,
 	}
 
 	for(ids_t i = 0; i <= maxID;++i){
-		x << xMap[i] << std::endl;
-		y << yMap[i] << std::endl;
+		z << zMap[i] << std::endl;
+		r << rMap[i] << std::endl;
 	}
 	maxID = points.size();
 
@@ -252,11 +189,11 @@ void Data::saveInFile(const std::string& Xfile,
 
 	}
 
-	for(std::vector<ids_t>::iterator i = leftBoundaryPoints.begin(); i != leftBoundaryPoints.end(); ++i){
+	for(std::vector<ids_t>::iterator i = upperBoundaryPoints.begin(); i != upperBoundaryPoints.end(); ++i){
 		boundary << *i + 1 << " " << 1 << std::endl;
 	}
 
-	for(std::vector<ids_t>::iterator i = rigthBoundaryPoints.begin(); i != rigthBoundaryPoints.end(); ++i){
+	for(std::vector<ids_t>::iterator i = downBoundaryPoints.begin(); i != downBoundaryPoints.end(); ++i){
 		boundary << *i + 1 << " " << 2 << std::endl;
 	}
 
@@ -284,34 +221,34 @@ void Data::saveDeformation(const std::string& file,int iteration){
 		for(int j = 0; j < membraneLayersPoints[0].size(); ++j)
 		{
 			coordinates_t tita;
-			coordinates_t x;
-			coordinates_t y;
+			coordinates_t z;
+			coordinates_t r;
 
 			Point pointTemp;
 			pointTemp = outerMembranePoints[membraneLayersPoints[0][j]];
-			x = pointTemp.getX();
-			y = pointTemp.getY();
+			z = pointTemp.getZ();
+			r = pointTemp.getR();
 
-			if(x-centerX > 0.0)
-				tita= atan(y/(x-centerX));
+			if(z-centerZ > 0.0)
+				tita= atan(r/(z-centerZ));
 			else
 			{
-				if((x - centerX) == 0)
+				if((z - centerZ) == 0)
 					tita = PI * 0.5;
 				else
-					tita = atan(y/(x - centerX))+PI;
+					tita = atan(r/(z - centerZ))+PI;
 
 			}
 
 			deformationFile << PI - tita;
 			deformationFile << "\t";
-			deformationFile << x;
+			deformationFile << z;
 			deformationFile << "\t";
-			deformationFile << y;
+			deformationFile << r;
 			deformationFile << "\t";
-			deformationFile << points[membraneLayersPoints[0][j]].getX();
+			deformationFile << points[membraneLayersPoints[0][j]].getZ();
 			deformationFile << "\t";
-			deformationFile << points[membraneLayersPoints[0][j]].getY();
+			deformationFile << points[membraneLayersPoints[0][j]].getR();
 			deformationFile << std::endl;
 		}
 
@@ -321,11 +258,7 @@ void Data::saveDeformation(const std::string& file,int iteration){
 }
 
 void Data::saveTension(const std::string& file,int iteration){
-	if(iteration < 1)
-	{
-
-	}
-	else
+	if(iteration >= 1)
 	{
 		std::ofstream tensionFile;
 		tensionFile.open(addPath(file).c_str(), std::ios::out | std::ios::trunc);
@@ -336,20 +269,20 @@ void Data::saveTension(const std::string& file,int iteration){
 		for(int j = 0; j < outer.size(); ++j)
 		{
 			coordinates_t tita;
-			coordinates_t x;
-			coordinates_t y;
+			coordinates_t z;
+			coordinates_t r;
 
-			x = outer[j][0];
-			y = outer[j][1];
+			z = outer[j][0];
+			r = outer[j][1];
 
-			if(x-centerX > 0.0)
-				tita= atan(y/(x-centerX));
+			if(z-centerZ > 0.0)
+				tita= atan(r/(z-centerZ));
 			else
 			{
-				if((x - centerX) == 0)
+				if((z - centerZ) == 0)
 					tita = PI * 0.5;
 				else
-					tita = atan(y/(x - centerX))+PI;
+					tita = atan(r/(z - centerZ))+PI;
 
 			}
 
@@ -391,8 +324,8 @@ void Data::saveMembraneFile(const std::string& membrane){
 	membraneFile.precision(15);
 
 	coordinates_t tita;
-	coordinates_t x;
-	coordinates_t y;
+	coordinates_t z;
+	coordinates_t r;
 	coordinates_t potential = getPotential();
 	Point pointTemp;
 
@@ -400,17 +333,17 @@ void Data::saveMembraneFile(const std::string& membrane){
 	for(int j = 0; j < membraneLayersPoints[0].size(); ++j)
 	{
 		pointTemp = points[membraneLayersPoints[0][j]];
-		x = pointTemp.getX();
-		y = pointTemp.getY();
+		z = pointTemp.getZ();
+		r = pointTemp.getR();
 
-		if(x-centerX > 0.0)
-			tita= atan(y/(x-centerX));
+		if(z-centerZ > 0.0)
+			tita= atan(r/(z-centerZ));
 		else
 		{
-			if((x - centerX) == 0)
+			if((z - centerZ) == 0)
 				tita = PI * 0.5;
 			else
-				tita = atan(y/(x - centerX))+PI;
+				tita = atan(r/(z - centerZ))+PI;
 
 		}
 
@@ -434,8 +367,8 @@ void Data::saveVTK(const std::string& file){
 
 
 	ids_t maxID = 0;
-	std::map<ids_t,coordinates_t> xMap;
-	std::map<ids_t,coordinates_t> yMap;
+	std::map<ids_t,coordinates_t> zMap;
+	std::map<ids_t,coordinates_t> rMap;
 
 	vtkFile.open(addPath(file).c_str(), std::ios::out | std::ios::trunc);
 	vtkFile.precision(15);
@@ -449,8 +382,8 @@ void Data::saveVTK(const std::string& file){
 
 
 	for(std::map<ids_t,Point>::iterator it = this->points.begin();it != this->points.end();++it){
-		xMap[it->first] = it->second.getX();
-		yMap[it->first] = it->second.getY();
+		zMap[it->first] = it->second.getZ();
+		rMap[it->first] = it->second.getR();
 
 		if(it->second.getID() > maxID){
 			maxID = it->second.getID();
@@ -458,9 +391,9 @@ void Data::saveVTK(const std::string& file){
 	}
 
 	for(ids_t i = 0; i <= maxID;++i){
-		vtkFile << yMap[i];
+		vtkFile << rMap[i];
 		vtkFile << " ";
-		vtkFile << xMap[i];
+		vtkFile << zMap[i];
 		vtkFile << " ";
 		vtkFile << 0.0;
 		vtkFile << std::endl;
@@ -502,16 +435,16 @@ void Data::saveFEM(const std::string& femFile,const std::string& inputFile){
 	fem.open(addPath(femFile).c_str(), std::ios::out | std::ios::trunc);
 	input.open(addPath(inputFile).c_str(), std::ios::out | std::ios::trunc);
 
-	std::map<ids_t,coordinates_t> xMap;
-	std::map<ids_t,coordinates_t> yMap;
+	std::map<ids_t,coordinates_t> zMap;
+	std::map<ids_t,coordinates_t> rMap;
 
 
 	fem << "*COORDINATES" << std::endl;
 
 
 	for(std::map<ids_t,Point>::iterator it = this->points.begin();it != this->points.end();++it){
-		xMap[it->first] = it->second.getX();
-		yMap[it->first] = it->second.getY();
+		zMap[it->first] = it->second.getZ();
+		rMap[it->first] = it->second.getR();
 
 		if(it->second.getID() > maxID){
 			maxID = it->second.getID();
@@ -523,8 +456,8 @@ void Data::saveFEM(const std::string& femFile,const std::string& inputFile){
 	for(ids_t i = 0; i <= maxID;++i){
 		ids_t j = i+1;
 		fem << j << "\t";
-		fem << yMap[i] << "\t";
-		fem << xMap[i] << std::endl;
+		fem << zMap[i] << "\t";
+		fem << rMap[i] << std::endl;
 	}
 
 	fem << "*ELEMENT_GROUPS" << std::endl;
@@ -552,10 +485,10 @@ void Data::saveFEM(const std::string& femFile,const std::string& inputFile){
 		if(this->quads[i].getType() == 1){
 			id++;
 			fem << id << "\t"
-				<< this->quads[i].getPoint(3).getID() + 1 << "\t"
-				<< this->quads[i].getPoint(2).getID() + 1 << "\t"
+				<< this->quads[i].getPoint(0).getID() + 1 << "\t"
 				<< this->quads[i].getPoint(1).getID() + 1 << "\t"
-				<< this->quads[i].getPoint(0).getID() + 1 << std::endl;
+				<< this->quads[i].getPoint(2).getID() + 1 << "\t"
+				<< this->quads[i].getPoint(3).getID() + 1 << std::endl;
 		}
 	}
 
@@ -605,18 +538,18 @@ void Data::saveFEM(const std::string& femFile,const std::string& inputFile){
 
 
 
-	input << "dirichV: " << leftBoundaryPoints.size() << std::endl;
+	input << "dirichV: " << upperBoundaryPoints.size() << std::endl;
 
-	for(unsigned i = 0; i < leftBoundaryPoints.size(); ++i)
+	for(unsigned i = 0; i < upperBoundaryPoints.size(); ++i)
 	{
-		input << leftBoundaryPoints[i] + 1 << std::endl;
+		input << upperBoundaryPoints[i] + 1 << std::endl;
 	}
 
-	input << "dirichT: " << rigthBoundaryPoints.size() << std::endl;
+	input << "dirichT: " << downBoundaryPoints.size() << std::endl;
 
-	for(unsigned i = 0; i < rigthBoundaryPoints.size(); ++i)
+	for(unsigned i = 0; i < downBoundaryPoints.size(); ++i)
 	{
-		input << rigthBoundaryPoints[i] + 1 << std::endl;
+		input << downBoundaryPoints[i] + 1 << std::endl;
 	}
 
 	input << "end_dataCC" << std::endl;
@@ -628,16 +561,16 @@ void Data::saveFEM(const std::string& femFile,const std::string& inputFile){
 
 
 std::vector<ids_t> Data::getLeftBoundaryPoints(){
-	return this->leftBoundaryPoints;
+	return this->upperBoundaryPoints;
 }
 std::vector<ids_t> Data::getRigthBoundaryPoints(){
-	return this->rigthBoundaryPoints;
+	return this->downBoundaryPoints;
 }
 void Data::addLeftBoundaryPoint(ids_t id){
-	this->leftBoundaryPoints.push_back(id);
+	this->upperBoundaryPoints.push_back(id);
 }
 void Data::addRigthBoundaryPoints(ids_t id){
-	this->rigthBoundaryPoints.push_back(id);
+	this->downBoundaryPoints.push_back(id);
 }
 
 ids_t Data::getNodesPerElement(){
@@ -657,7 +590,7 @@ coordinates_t Data::getPotentialDensity(){
 }
 coordinates_t Data::getPotential(){
 	//Density is in kV/m,  maxX is in um
-	return this->potential_density * this->maxX * (1000.0 / 1000000.0);
+	return this->potential_density * this->maxZ * (1000.0 / 1000000.0);
 }
 
 void Data::setSigmas(coordinates_t inner_cell,coordinates_t outer_cell,coordinates_t membrane){
@@ -726,44 +659,44 @@ coordinates_t Data::getMinimunDifference(){
 	return minimunDifference;
 }
 void Data::updateMinimunDifference(Quad quad){
-	coordinates_t minX,maxX;
-	coordinates_t minY,maxY;
-	coordinates_t newDifferenceX;
-	coordinates_t newDifferenceY;
+	coordinates_t minZ,maxZ;
+	coordinates_t minR,maxR;
+	coordinates_t newDifferenceZ;
+	coordinates_t newDifferenceR;
 
-	minX = quad.getPoint(0).getX();
-	maxX = quad.getPoint(0).getX();
-	minY = quad.getPoint(0).getY();
-	maxY = quad.getPoint(0).getY();
+	minZ = quad.getPoint(0).getZ();
+	maxZ = quad.getPoint(0).getZ();
+	minR = quad.getPoint(0).getR();
+	maxR = quad.getPoint(0).getR();
 
-	coordinates_t x;
-	coordinates_t y;
+	coordinates_t z;
+	coordinates_t r;
 	for(unsigned i = 1; i < 4 ; ++i)
 	{
-		x = quad.getPoint(i).getX();
-		y = quad.getPoint(i).getY();
+		z = quad.getPoint(i).getZ();
+		r = quad.getPoint(i).getR();
 
-		if(x < minX)
-			minX = x;
+		if(z < minZ)
+			minZ = z;
 
-		if(x > maxX)
-			maxX = x;
+		if(z > maxZ)
+			maxZ = z;
 
-		if(y < minY)
-			minY = y;
+		if(r < minR)
+			minR = r;
 
-		if(y > maxY)
-			maxY = y;
+		if(r > maxR)
+			maxR = r;
 	}
 
-	newDifferenceX =  fabs(maxX - minX);
-	newDifferenceY =  fabs(maxY - minY);
+	newDifferenceZ =  fabs(maxZ - minZ);
+	newDifferenceR =  fabs(maxR - minR);
 
-	if(newDifferenceX < minimunDifference)
-		minimunDifference = newDifferenceX;
+	if(newDifferenceZ < minimunDifference)
+		minimunDifference = newDifferenceZ;
 
-	if(newDifferenceY < minimunDifference)
-		minimunDifference = newDifferenceY;
+	if(newDifferenceR < minimunDifference)
+		minimunDifference = newDifferenceR;
 
 }
 
@@ -845,9 +778,9 @@ void Data::addMembraneLayerFront(const std::vector<Point>& points){
 }
 
 
-coordinates_t Data::getCellXCenter(){
-	return centerX;
+coordinates_t Data::getCellZCenter(){
+	return centerZ;
 }
-coordinates_t Data::getCellYCenter(){
-	return centerY;
+coordinates_t Data::getCellRCenter(){
+	return centerR;
 }

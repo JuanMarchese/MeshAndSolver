@@ -218,7 +218,7 @@ int main(int argc, char *argv[])
     generatorSquare.initTransitionData(numberOfFixingLayers);
     generatorSquare.setInnerVector(generator.getOuterPoints());
     generatorSquare.setInCellVector(generator.getInnerPoints());
-    generatorSquare.initCenterPosition(data.getCellXCenter(),data.getCellYCenter());
+    generatorSquare.initCenterPosition(data.getCellZCenter(),data.getCellRCenter());
     generatorSquare.initBlocksSizes(blockSize,blockXIterations,blockYIterations,numberOfLayers);
     generatorSquare.initTypes(outerCellType,innerCellType);
 

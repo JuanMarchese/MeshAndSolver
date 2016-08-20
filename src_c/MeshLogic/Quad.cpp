@@ -32,7 +32,7 @@ Quad::~Quad() {
 
 coordinates_t Quad::getX(unsigned pos)const{
 	if(validPos(pos)){
-		return points[pos].getX();
+		return points[pos].getZ();
 	}else{
 		return 0;
 	}
@@ -40,7 +40,7 @@ coordinates_t Quad::getX(unsigned pos)const{
 }
 coordinates_t Quad::getY(unsigned pos)const{
 	if(validPos(pos)){
-		return points[pos].getY();
+		return points[pos].getR();
 	}else{
 		return 0;
 	}
@@ -76,8 +76,8 @@ coordinates_t Quad::getSurface(){
 
 	for(index_t i = 0; i < 4 ; ++i)
 	{
-		surface += (this->points[(i+1)%4].getX() - this->points[i].getX())*
-				   (this->points[(i+1)%4].getY() + this->points[i].getY());
+		surface += (this->points[(i+1)%4].getZ() - this->points[i].getZ())*
+				   (this->points[(i+1)%4].getR() + this->points[i].getR());
 	}
 
 	return surface;

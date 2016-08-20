@@ -20,7 +20,7 @@ public:
 	Point();
 	Point(const Point& other);
 	Point& operator=(const Point& other);
-	Point(coordinates_t x, coordinates_t y,bool special = false);
+	Point(coordinates_t z, coordinates_t r,bool special = false);
 
 	Point operator+( const Point& other )const;
 	Point operator-( const Point& other )const;
@@ -29,19 +29,19 @@ public:
 
 	~Point();
 
-	coordinates_t getX()const;
-	coordinates_t getY()const;
+	coordinates_t getZ()const;
+	coordinates_t getR()const;
 
-	void setX(coordinates_t x);
-	void setY(coordinates_t y);
+	void setZ(coordinates_t z);
+	void setR(coordinates_t r);
 
 	Point& setID(ids_t value);
 	ids_t getID()const;
 
 
 private:
-	coordinates_t x;
-	coordinates_t y;
+	coordinates_t z;
+	coordinates_t r;
 	ids_t id;
 
 

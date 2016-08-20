@@ -10,8 +10,8 @@
 
 CellGenerator::CellGenerator():innerRadius(0),
 							   outerRadius(0),
-							   cellXCenter(0),
-							   cellYCenter(0),
+							   cellZCenter(0),
+							   cellRCenter(0),
 							   cellLayers(0),
 							   cellIterations(0),
 							   boundaryLayers(0),
@@ -95,8 +95,8 @@ void CellGenerator::generateOuterRadiusVector(){
 
 void CellGenerator::process(){
 
-	cellXCenter = data->getCellXCenter();
-	cellYCenter = data->getCellYCenter();
+	cellZCenter = data->getCellZCenter();
+	cellRCenter = data->getCellRCenter();
 
 	generateAngles();
 	generateRadiusVector();
@@ -152,8 +152,8 @@ void CellGenerator::generateCellCirclePoints(std::vector<Point>& vector,index_t 
 
 	coordinates_t angle = 0.0;
 
-	coordinates_t X;
-	coordinates_t Y;
+	coordinates_t Z;
+	coordinates_t R;
 
 	coordinates_t radius = this->radius[iteration];
 	vector.clear();
@@ -161,10 +161,10 @@ void CellGenerator::generateCellCirclePoints(std::vector<Point>& vector,index_t 
 	for(index_t i = 0; i <= cellIterations; ++i){
 
 		angle = angles[i];
-		X = cellXCenter + cos(angle)*radius;
-		Y = cellYCenter + sin(angle)*radius;
+		Z = cellZCenter + cos(angle)*radius;
+		R = cellRCenter + sin(angle)*radius;
 
-		Point point(X,Y);
+		Point point(Z,R);
 
 		point.setID(data->addPoint(point));
 		vector.push_back(point);
@@ -176,20 +176,20 @@ void CellGenerator::generateFinalVector(index_t start,
 							 	 	 	index_t increment,
 							 	 	 	index_t iterations,
 										std::vector<Point>& vector,
-										std::vector<coordinates_t> vectorX,
-										std::vector<coordinates_t> vectorY,
-										coordinates_t xSign,
-										coordinates_t ySign,
+										std::vector<coordinates_t> vectorZ,
+										std::vector<coordinates_t> vectorR,
+										coordinates_t zSign,
+										coordinates_t rSign,
 										bool addToData){
 
-	coordinates_t X;
-	coordinates_t Y;
+	coordinates_t Z;
+	coordinates_t R;
 	index_t i = start;
 
 	for(index_t j = 0;j < iterations; ++j){
-		X = cellXCenter + xSign * vectorX[i];
-		Y = cellYCenter + ySign * vectorY[i];
-		Point point(X,Y);
+		Z = cellZCenter + zSign * vectorZ[i];
+		R = cellRCenter + rSign * vectorR[i];
+		Point point(Z,R);
 
 		if(addToData)
 			point.setID(data->addPoint(point));
@@ -211,11 +211,11 @@ void CellGenerator::generateBoundaryCirclePoints(std::vector<Point>& vector,inde
 
 	coordinates_t betaAngle;
 
-	coordinates_t X;
-	coordinates_t Y;
+	coordinates_t Z;
+	coordinates_t R;
 
-	std::vector<coordinates_t> Xoriginal;
-	std::vector<coordinates_t> Yoriginal;
+	std::vector<coordinates_t> Zoriginal;
+	std::vector<coordinates_t> Roriginal;
 
 
 	coordinateRadius = outerRadius + boundaryLinesSeparation * (iteration);
@@ -231,19 +231,19 @@ void CellGenerator::generateBoundaryCirclePoints(std::vector<Point>& vector,inde
 				  - asin( sin ( (3.14159265 - angle))
 					* distanceFromCenter / currentRealRadius);
 
-		X = currentRealRadius * cos(betaAngle) - distanceFromCenter;
-		Y = currentRealRadius * sin(betaAngle);
+		Z = currentRealRadius * cos(betaAngle) - distanceFromCenter;
+		R = currentRealRadius * sin(betaAngle);
 
-		Xoriginal.push_back(X);
-		Yoriginal.push_back(Y);
+		Zoriginal.push_back(Z);
+		Roriginal.push_back(R);
 	}
 
-	index_t size = Xoriginal.size();
+	index_t size = Zoriginal.size();
 
-	generateFinalVector(0,1,size,vector,Xoriginal,Yoriginal,-1.0,1.0);
-	generateFinalVector(size-2,-1,size-1,vector,Yoriginal,Xoriginal,1.0,-1.0);
-	generateFinalVector(1,1,size-1,vector,Yoriginal,Xoriginal,-1.0,-1.0);
-	generateFinalVector(size-2,-1,size-1,vector,Xoriginal,Yoriginal,1.0,1.0);
+	generateFinalVector(0,1,size,vector,Zoriginal,Roriginal,-1.0,1.0);
+	generateFinalVector(size-2,-1,size-1,vector,Roriginal,Zoriginal,1.0,-1.0);
+	generateFinalVector(1,1,size-1,vector,Roriginal,Zoriginal,-1.0,-1.0);
+	generateFinalVector(size-2,-1,size-1,vector,Zoriginal,Roriginal,1.0,1.0);
 
 
 }
@@ -292,10 +292,10 @@ void CellGenerator::generateAngles(){
 void CellGenerator::generateQuads(ids_t type,bool saveIDs,ids_t layer){
 
 	for(unsigned i = 0; i < innerPoints.size()-1;++i){
-		Quad newQuad(outerPoints[i],
-					 outerPoints[i+1],
-					 innerPoints[i+1],
-					 innerPoints[i]);
+		Quad newQuad(outerPoints[i+1],
+					 outerPoints[i],
+					 innerPoints[i],
+					 innerPoints[i+1]);
 
 		ids_t id = data->addQuad(newQuad,type);
 
@@ -340,11 +340,11 @@ void CellGenerator::generateInnerCirclePoints(std::vector<Point>& vector,index_t
 
 	coordinates_t betaAngle;
 
-	coordinates_t X;
-	coordinates_t Y;
+	coordinates_t Z;
+	coordinates_t R;
 
-	std::vector<coordinates_t> Xoriginal;
-	std::vector<coordinates_t> Yoriginal;
+	std::vector<coordinates_t> Zoriginal;
+	std::vector<coordinates_t> Roriginal;
 
 
 	coordinateRadius = innerRadius -(innerLinesSeparation * (iteration));
@@ -361,20 +361,20 @@ void CellGenerator::generateInnerCirclePoints(std::vector<Point>& vector,index_t
 				  - asin( sin ( (3.14159265 - angle))
 					* distanceFromCenter / currentRealRadius);
 
-		X = currentRealRadius * cos(betaAngle) - distanceFromCenter;
-		Y = currentRealRadius * sin(betaAngle);
+		Z = currentRealRadius * cos(betaAngle) - distanceFromCenter;
+		R = currentRealRadius * sin(betaAngle);
 
-		Xoriginal.push_back(X);
-		Yoriginal.push_back(Y);
+		Zoriginal.push_back(Z);
+		Roriginal.push_back(R);
 		//angle += angleIncrement;
 	}
 
-	index_t size = Xoriginal.size();
+	index_t size = Zoriginal.size();
 
-	generateFinalVector(0,1,size,vector,Xoriginal,Yoriginal,-1.0,1.0,addPointsToData);
-	generateFinalVector(size-2,-1,size-1,vector,Yoriginal,Xoriginal,1.0,-1.0,addPointsToData);
-	generateFinalVector(1,1,size-1,vector,Yoriginal,Xoriginal,-1.0,-1.0,addPointsToData);
-	generateFinalVector(size-2,-1,size-1,vector,Xoriginal,Yoriginal,1.0,1.0,addPointsToData);
+	generateFinalVector(0,1,size,vector,Zoriginal,Roriginal,-1.0,1.0,addPointsToData);
+	generateFinalVector(size-2,-1,size-1,vector,Roriginal,Zoriginal,1.0,-1.0,addPointsToData);
+	generateFinalVector(1,1,size-1,vector,Roriginal,Zoriginal,-1.0,-1.0,addPointsToData);
+	generateFinalVector(size-2,-1,size-1,vector,Zoriginal,Roriginal,1.0,1.0,addPointsToData);
 }
 
 void CellGenerator::initTypes(ids_t inCell,ids_t outerCell,ids_t innerCell){
@@ -390,11 +390,11 @@ bool CellGenerator::circlesOverlap(){
 
 
 	while(!overlap && (i < size)){
-		coordinates_t innerRadius = (innerPoints[i].getX() - cellXCenter)*(innerPoints[i].getX() - cellXCenter);
-		innerRadius += (innerPoints[i].getY() - cellYCenter)*(innerPoints[i].getY() - cellYCenter);
+		coordinates_t innerRadius = (innerPoints[i].getZ() - cellZCenter)*(innerPoints[i].getZ() - cellZCenter);
+		innerRadius += (innerPoints[i].getR() - cellRCenter)*(innerPoints[i].getR() - cellRCenter);
 
-		coordinates_t outerRadius = (outerPoints[i].getX() - cellXCenter)*(outerPoints[i].getX() - cellXCenter);
-		outerRadius += (outerPoints[i].getY() - cellYCenter)*(outerPoints[i].getY() - cellYCenter);
+		coordinates_t outerRadius = (outerPoints[i].getZ() - cellZCenter)*(outerPoints[i].getZ() - cellZCenter);
+		outerRadius += (outerPoints[i].getR() - cellRCenter)*(outerPoints[i].getR() - cellRCenter);
 
 		overlap = innerRadius >= outerRadius;
 		++i;

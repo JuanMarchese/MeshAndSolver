@@ -25,12 +25,12 @@ private:
 	index_t innerRowsCount;
 	index_t innerColumsCount;
 
-	coordinates_t xCenter;
-	coordinates_t yCenter;
+	coordinates_t zCenter;
+	coordinates_t rCenter;
 
 	coordinates_t blockSize;
-	index_t blockXIterations;
-	index_t blockYIterations;
+	index_t blockZIterations;
+	index_t blockRIterations;
 	index_t numberOfLayers;
 
 	index_t numberOfFixingLayers;
@@ -48,7 +48,7 @@ public:
 
 	void initData(Data* data);
 	void initBlocksSizes(coordinates_t blockSize,index_t blockXIterations,index_t blockYIterations,index_t numberOfLayers);
-	void initCenterPosition(coordinates_t xCenter,coordinates_t yCenter);
+	void initCenterPosition(coordinates_t zCenter,coordinates_t rCenter);
 	void initTransitionData(index_t numberOfFixingLayers);
 	void initTypes(ids_t outerCell,ids_t innerCell);
 	void process();
@@ -69,11 +69,11 @@ private:
 	void generateFixPoints();
 	void generatePoints(std::vector<Point>& vector,
 					    Point start,
-					    coordinates_t incrementX,
-					    coordinates_t incrementY,
+					    coordinates_t incrementZ,
+					    coordinates_t incrementR,
 					    index_t iterations,
-					    coordinates_t fixFirstIncrementX = 0.0,
-					    coordinates_t fixFirstIncrementY = 0.0);
+					    coordinates_t fixFirstIncrementZ = 0.0,
+					    coordinates_t fixFirstIncrementR = 0.0);
 	void generateFixedPoints(std::vector<Point>& vector,
 							 Point start,
 							 coordinates_t increment,
@@ -103,8 +103,8 @@ private:
 	void addColumn(std::vector<Point>& points, coordinates_t increment,bool left,ids_t type = 0);
 	void addInnerColumn(std::vector<Point>& points, coordinates_t increment,bool left,ids_t type = 0);
 	void generateTransitionTwoBlocs(std::vector<Point>& points,
-								    coordinates_t sizeX,
-								    coordinates_t sizeY,
+								    coordinates_t sizeZ,
+								    coordinates_t sizeR,
 								    std::vector<Point>& outPointsVector,
 								    index_t start,
 								    index_t end,
@@ -119,7 +119,7 @@ private:
 	void addOuterLayer(std::vector<Point>& points,coordinates_t size);
 	void addInnerTransition(std::vector<Point>& points,coordinates_t size,std::vector<Point>& outPoints);
 
-	void processOuterFixingLayer(coordinates_t xStart,coordinates_t yStart);
+	void processOuterFixingLayer(coordinates_t zStart,coordinates_t rStart);
 	bool thereIsPlaceToContinue(coordinates_t size);
 	index_t possibleIterations(coordinates_t size);
 	void finishBoundary(coordinates_t size);

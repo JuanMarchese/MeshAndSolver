@@ -27,3 +27,12 @@
 *.exe
 *.out
 *.app
+
+#eclipse
+.cproject
+.project
+.settings
+.settings/*
+
+#binary
+MeshAndSolver

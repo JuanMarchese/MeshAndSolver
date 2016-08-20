@@ -13,11 +13,11 @@ MeshGenerator::MeshGenerator():	outerRowsCount(0),
 								outerColumsCount(0),
 								innerRowsCount(0),
 								innerColumsCount(0),
-								xCenter(0),
-								yCenter(0),
+								zCenter(0),
+								rCenter(0),
 							    blockSize(0),
-							    blockXIterations(0),
-							    blockYIterations(0),
+							    blockZIterations(0),
+							    blockRIterations(0),
 							    numberOfLayers(0),
 							    numberOfFixingLayers(0),
 							    data(0),
@@ -29,21 +29,19 @@ MeshGenerator::~MeshGenerator() {
 }
 
 void MeshGenerator::initBlocksSizes(coordinates_t blockSize,
-									index_t blockXIterations,
-									index_t blockYIterations,
+									index_t blockZIterations,
+									index_t blockRIterations,
 									index_t numberOfLayers){
 	this->blockSize = blockSize;
-	this->blockXIterations = blockXIterations;
-	this->blockYIterations = blockYIterations;
+	this->blockZIterations = blockZIterations;
+	this->blockRIterations = blockRIterations;
 	this->numberOfLayers = numberOfLayers;
 }
-void MeshGenerator::initCenterPosition(coordinates_t xCenter,coordinates_t yCenter){
-	this->xCenter = xCenter;
-	this->yCenter = yCenter;
+void MeshGenerator::initCenterPosition(coordinates_t zCenter,coordinates_t rCenter){
+	this->zCenter = zCenter;
+	this->rCenter = rCenter;
 }
 void MeshGenerator::setInnerVector(std::vector<Point>& innerPoints){
-
-
 	this->innerPoints = innerPoints;
 	this->originalInnerPoints = innerPoints;
 }
@@ -55,8 +53,8 @@ void MeshGenerator::setInCellVector(std::vector<Point>& inCellPoints){
 void MeshGenerator::process(){
 
 	std::vector<Point> innerPointsTemp;
-	coordinates_t x;
-	coordinates_t y;
+	coordinates_t z;
+	coordinates_t r;
 
 	/*Init the paremeters*/
 
@@ -71,11 +69,11 @@ void MeshGenerator::process(){
 	}
 
 	innerPoints = innerPointsTemp;
-	x = xCenter - blockSize*(blockXIterations/2+1);
-	y = yCenter;
+	z = zCenter - blockSize*(blockZIterations/2+1);
+	r = rCenter;
 
 	/*Generate the outer fixing layers points*/
-	processOuterFixingLayer(x,y);
+	processOuterFixingLayer(z,r);
 
 	/*Generate the outer layers until the end*/
 
@@ -132,7 +130,7 @@ void MeshGenerator::process(){
 
 	for(index_t i = 0; i < endIterations; ++i)
 	{
-		addInnerLayer(this->innerPoints,this->innerPoints[1].getY()- this->innerPoints[0].getY(),false);
+		addInnerLayer(this->innerPoints,this->innerPoints[1].getR()- this->innerPoints[0].getR(),false);
 	}
 
 	side = findTransition(this->innerPoints,0);
@@ -146,7 +144,7 @@ void MeshGenerator::process(){
 
 }
 
-void MeshGenerator::processOuterFixingLayer(coordinates_t xStart,coordinates_t yStart){
+void MeshGenerator::processOuterFixingLayer(coordinates_t zStart,coordinates_t rStart){
 
 	index_t fixedPoints;
 
@@ -154,34 +152,34 @@ void MeshGenerator::processOuterFixingLayer(coordinates_t xStart,coordinates_t y
 		this->outerPoints.clear();
 		fixedPoints = 0;
 
-		generateFixedPoints(this->outerPoints,Point(xStart,yStart),
-					   	    0.0,1.0,false,blockYIterations,i,fixedPoints);
+		generateFixedPoints(this->outerPoints,Point(zStart,rStart),
+					   	    0.0,1.0,false,blockRIterations,i,fixedPoints);
 		generatePoints(this->outerPoints,
-					   this->outerPoints[0] + Point(0.0,blockSize*blockYIterations),
+					   this->outerPoints[0] + Point(0.0,blockSize*blockRIterations),
 					   0.0,blockSize,i + 1);
 		generatePoints(this->outerPoints,
 					   this->outerPoints[this->outerPoints.size()-1] + Point(blockSize,0.0),
 					   blockSize,0.0,i);
-		generateFixedPointsInverseOrder(this->outerPoints,Point(xCenter,(blockYIterations+i)*blockSize),
-										0.0,1.0,true,blockXIterations/2+1,i,fixedPoints);
+		generateFixedPointsInverseOrder(this->outerPoints,Point(zCenter,(blockRIterations+i)*blockSize),
+										0.0,1.0,true,blockZIterations/2+1,i,fixedPoints);
 
-		Point point(xCenter,(blockYIterations+i)*blockSize);
+		Point point(zCenter,(blockRIterations+i)*blockSize);
 		point.setID(data->addPoint(point));
 		this->outerPoints.push_back(point);
 		--fixedPoints;
 
-		generateFixedPoints(this->outerPoints,Point(xCenter,(blockYIterations+i)*blockSize),
-					   	    0.0,1.0,true,blockXIterations/2,i,fixedPoints);
+		generateFixedPoints(this->outerPoints,Point(zCenter,(blockRIterations+i)*blockSize),
+					   	    0.0,1.0,true,blockZIterations/2,i,fixedPoints);
 		generatePoints(this->outerPoints,
-					   Point(xCenter+blockSize*(blockXIterations/2+1),this->outerPoints[this->outerPoints.size()-1].getY()),
+					   Point(zCenter+blockSize*(blockZIterations/2+1),this->outerPoints[this->outerPoints.size()-1].getR()),
 					   blockSize,0.0,i+1);
 		generatePoints(this->outerPoints,
 					   this->outerPoints[this->outerPoints.size()-1] + Point(0.0,-1.0*blockSize),
 					   0.0,-1.0*blockSize,i);
 		generateFixedPointsInverseOrder(this->outerPoints,
-										Point(this->outerPoints[this->outerPoints.size()-1].getX(),yCenter),
-										0.0,-1.0,false,blockYIterations+1,i,fixedPoints);
-		xStart -= blockSize;
+										Point(this->outerPoints[this->outerPoints.size()-1].getZ(),rCenter),
+										0.0,-1.0,false,blockRIterations+1,i,fixedPoints);
+		zStart -= blockSize;
 
 		generateQuads(outerCellType);
 		this->innerPoints = this->outerPoints;
@@ -213,7 +211,7 @@ void MeshGenerator::processInnerCell(index_t iterations){
 		}
 
 		if(rest % 2 != 0)
-			addInnerColumn(this->innerPoints, this->innerPoints[1].getY()- this->innerPoints[0].getY(),true,innerCellType);
+			addInnerColumn(this->innerPoints, this->innerPoints[1].getR()- this->innerPoints[0].getR(),true,innerCellType);
 
 		firstPointChange = findTransition(this->innerPoints,0);
 		middlePointChange = findTransition(this->innerPoints,firstPointChange+1);
@@ -223,7 +221,7 @@ void MeshGenerator::processInnerCell(index_t iterations){
 	/*Test if the sides are 2 multiple*/
 	if(firstPointChange % 2 != 0)
 	{
-		addRow(this->innerPoints, this->innerPoints[0].getY()- this->innerPoints[1].getY(),innerCellType);
+		addRow(this->innerPoints, this->innerPoints[0].getR()- this->innerPoints[1].getR(),innerCellType);
 		firstPointChange = findTransition(this->innerPoints,0);
 		middlePointChange = findTransition(this->innerPoints,firstPointChange+1);
 	}
@@ -233,14 +231,14 @@ void MeshGenerator::processInnerCell(index_t iterations){
 
 
 	/*Add the transition*/
-	addInnerTransition(this->innerPoints,innerPoints[1].getY()- innerPoints[0].getY(),innerPointsTemp);
+	addInnerTransition(this->innerPoints,innerPoints[1].getR()- innerPoints[0].getR(),innerPointsTemp);
 
 	this->innerPoints = innerPointsTemp;
 
 	/*Add an inner layer*/
 	for(index_t i = 0; i < iterations;++i)
 	{
-		addInnerLayer(this->innerPoints,this->innerPoints[1].getY()- this->innerPoints[0].getY(),false);
+		addInnerLayer(this->innerPoints,this->innerPoints[1].getR()- this->innerPoints[0].getR(),false);
 	}
 
 }
@@ -258,9 +256,9 @@ bool MeshGenerator::addBlocks(coordinates_t blockSize,ids_t type){
 	middlePointChange = findTransition(this->innerPoints,firstPointChange+1);
 
 
-	if((this->innerPoints[0].getX() + blockSize)<(this->data->getMinX())){
+	if((this->innerPoints[0].getZ() + blockSize)<(this->data->getMinZ())){
 		retVal = false;
-		increment = this->data->getMinX() - this->innerPoints[0].getX();
+		increment = this->data->getMinZ() - this->innerPoints[0].getZ();
 	}else{
 		increment = -1.0 * blockSize;
 	}
@@ -271,9 +269,9 @@ bool MeshGenerator::addBlocks(coordinates_t blockSize,ids_t type){
 
 
 	oldIncrement = increment;
-	if((this->innerPoints[firstPointChange].getY() + blockSize)>(this->data->getMaxY())){
+	if((this->innerPoints[firstPointChange].getR() + blockSize)>(this->data->getMaxR())){
 		retVal = false;
-		increment = this->data->getMaxY() - this->innerPoints[firstPointChange].getY();
+		increment = this->data->getMaxR() - this->innerPoints[firstPointChange].getR();
 	}else{
 		increment = blockSize;
 	}
@@ -285,9 +283,9 @@ bool MeshGenerator::addBlocks(coordinates_t blockSize,ids_t type){
 
 
 	oldIncrement = increment;
-	if((this->innerPoints[middlePointChange+2].getX() + blockSize)>(this->data->getMaxX())){
+	if((this->innerPoints[middlePointChange+2].getZ() + blockSize)>(this->data->getMaxZ())){
 			retVal = false;
-			increment = this->data->getMaxX() - this->innerPoints[middlePointChange+2].getX();
+			increment = this->data->getMaxZ() - this->innerPoints[middlePointChange+2].getZ();
 		}else{
 			increment = blockSize;
 		}
@@ -306,13 +304,13 @@ bool MeshGenerator::addBlocks(coordinates_t blockSize,ids_t type){
 index_t MeshGenerator::possibleIterations(coordinates_t size){
 	index_t iterations = 0;
 
-	coordinates_t startX;
-	coordinates_t endX;
-	coordinates_t endY;
+	coordinates_t startZ;
+	coordinates_t endZ;
+	coordinates_t endR;
 
-	index_t iterationsStartX;
-	index_t iterationsEndX;
-	index_t iterationsEndY;
+	index_t iterationsStartZ;
+	index_t iterationsEndZ;
+	index_t iterationsEndR;
 
 	index_t firstPointChange;
 	index_t middlePointChange;
@@ -320,38 +318,38 @@ index_t MeshGenerator::possibleIterations(coordinates_t size){
 	firstPointChange = findTransition(this->outerPoints,0);
 	middlePointChange = findTransition(this->outerPoints,firstPointChange+1);
 
-	startX = this->outerPoints[0].getX() - this->data->getMinX();
-	endX = this->data->getMaxX() - this->outerPoints[middlePointChange].getX();
-	endY = this->data->getMaxY() - this->outerPoints[firstPointChange].getY();
+	startZ = this->outerPoints[0].getZ() - this->data->getMinZ();
+	endZ = this->data->getMaxZ() - this->outerPoints[middlePointChange].getZ();
+	endR = this->data->getMaxR() - this->outerPoints[firstPointChange].getR();
 
-	iterationsStartX = (index_t)(startX / size);
-	iterationsEndX = (index_t)(endX / size);
-	iterationsEndY = (index_t)(endY / size);
+	iterationsStartZ = (index_t)(startZ / size);
+	iterationsEndZ = (index_t)(endZ / size);
+	iterationsEndR = (index_t)(endR / size);
 
-	if(iterationsStartX < iterationsEndX){
-		iterations = iterationsStartX;
+	if(iterationsStartZ < iterationsEndZ){
+		iterations = iterationsStartZ;
 	}else{
-		iterations = iterationsEndX;
+		iterations = iterationsEndZ;
 	}
 
-	if(iterationsEndY < iterations){
-		iterations = iterationsEndY;
+	if(iterationsEndR < iterations){
+		iterations = iterationsEndR;
 	}
 
 	return iterations;
 }
 
 void MeshGenerator::finishBoundary(coordinates_t size){
-	coordinates_t startX;
-	coordinates_t endX;
-	coordinates_t endY;
-	coordinates_t endIncrementXleft;
-	coordinates_t endIncrementXright;
-	coordinates_t endIncrementY;
+	coordinates_t startZ;
+	coordinates_t endZ;
+	coordinates_t endR;
+	coordinates_t endIncrementZleft;
+	coordinates_t endIncrementZright;
+	coordinates_t endIncrementR;
 
-	int iterationsStartX;
-	int iterationsEndX;
-	int iterationsEndY;
+	int iterationsStartZ;
+	int iterationsEndZ;
+	int iterationsEndR;
 
 	int firstPointChange;
 	int middlePointChange;
@@ -359,46 +357,46 @@ void MeshGenerator::finishBoundary(coordinates_t size){
 	firstPointChange = findTransition(this->innerPoints,0);
 	middlePointChange = findTransition(this->innerPoints,firstPointChange+1);
 
-	startX = this->innerPoints[0].getX() - this->data->getMinX();
-	endX = this->data->getMaxX() - this->innerPoints[middlePointChange].getX();
-	endY = this->data->getMaxY() - this->innerPoints[firstPointChange].getY();
+	startZ = this->innerPoints[0].getZ() - this->data->getMinZ();
+	endZ = this->data->getMaxZ() - this->innerPoints[middlePointChange].getZ();
+	endR = this->data->getMaxR() - this->innerPoints[firstPointChange].getR();
 
-	iterationsStartX = (int)(startX / size);
-	iterationsEndX = (int)(endX / size);
-	iterationsEndY = (int)(endY / size);
+	iterationsStartZ = (int)(startZ / size);
+	iterationsEndZ = (int)(endZ / size);
+	iterationsEndR = (int)(endR / size);
 
-	endIncrementXleft = (this->innerPoints[0].getX() - (size*iterationsStartX)) - this->data->getMinX();
-	endIncrementXright = this->data->getMaxX() - (this->innerPoints[middlePointChange].getX() + (iterationsEndX*size));
-	endIncrementY = this->data->getMaxY() - (this->innerPoints[firstPointChange].getY() + (iterationsEndY*size));
+	endIncrementZleft = (this->innerPoints[0].getZ() - (size*iterationsStartZ)) - this->data->getMinZ();
+	endIncrementZright = this->data->getMaxZ() - (this->innerPoints[middlePointChange].getZ() + (iterationsEndZ*size));
+	endIncrementR = this->data->getMaxR() - (this->innerPoints[firstPointChange].getR() + (iterationsEndR*size));
 
-	for(int i = 0 ; i < iterationsStartX; i++){
+	for(int i = 0 ; i < iterationsStartZ; i++){
 		addColumn(this->innerPoints,size*-1.0,true,outerCellType);
 	}
 
-	if(endIncrementXleft > 0.0)
-		addColumn(this->innerPoints,endIncrementXleft*-1.0,true,outerCellType);
+	if(endIncrementZleft > 0.0)
+		addColumn(this->innerPoints,endIncrementZleft*-1.0,true,outerCellType);
 
 
-	for(int i = 0 ; i < iterationsEndX; i++){
+	for(int i = 0 ; i < iterationsEndZ; i++){
 		addColumn(this->innerPoints,size,false,outerCellType);
 	}
-	if(endIncrementXright > 0.0)
-		addColumn(this->innerPoints,endIncrementXright,false,outerCellType);
+	if(endIncrementZright > 0.0)
+		addColumn(this->innerPoints,endIncrementZright,false,outerCellType);
 
 
-	for(int i = 0 ; i < iterationsEndY; i++){
+	for(int i = 0 ; i < iterationsEndR; i++){
 		addRow(this->innerPoints,size,outerCellType);
 	}
-	if(endIncrementY > 0.0)
-		addRow(this->innerPoints,endIncrementY,outerCellType);
+	if(endIncrementR > 0.0)
+		addRow(this->innerPoints,endIncrementR,outerCellType);
 }
 
 /*We need a minimum of 10 blockSize to work properly*/
 bool MeshGenerator::thereIsPlaceToContinue(coordinates_t size){
 	bool retVal = false;
-	coordinates_t startX;
-	coordinates_t endX;
-	coordinates_t endY;
+	coordinates_t startZ;
+	coordinates_t endZ;
+	coordinates_t endR;
 
 	index_t firstPointChange;
 	index_t middlePointChange;
@@ -406,13 +404,13 @@ bool MeshGenerator::thereIsPlaceToContinue(coordinates_t size){
 	firstPointChange = findTransition(this->outerPoints,0);
 	middlePointChange = findTransition(this->outerPoints,firstPointChange+1);
 
-	startX = this->outerPoints[0].getX() - (size * 6.0);
-	endX = this->outerPoints[middlePointChange].getX() + (size * 6.0);
-	endY = this->outerPoints[firstPointChange].getY() + (size * 6.0);
+	startZ = this->outerPoints[0].getZ() - (size * 6.0);
+	endZ = this->outerPoints[middlePointChange].getZ() + (size * 6.0);
+	endR = this->outerPoints[firstPointChange].getR() + (size * 6.0);
 
-	retVal = (startX > this->data->getMinX()) &&
-			 (endX < this->data->getMaxX()) &&
-			 (endY < this->data->getMaxY());
+	retVal = (startZ > this->data->getMinZ()) &&
+			 (endZ < this->data->getMaxZ()) &&
+			 (endR < this->data->getMaxR());
 
 	return retVal;
 }
@@ -486,22 +484,22 @@ void MeshGenerator::generateQuads(ids_t type){
 	index_t innerIterator;
 	index_t outerIterator;
 
-	bool verticalIncrement = std::abs(innerPoints[1].getY() - innerPoints[0].getY())
-							 >std::abs(innerPoints[1].getX() - innerPoints[0].getX());
+	bool verticalIncrement = std::abs(innerPoints[1].getR() - innerPoints[0].getR())
+							 >std::abs(innerPoints[1].getZ() - innerPoints[0].getZ());
 
 	bool newVerticalIncrement = verticalIncrement;
 
 	outerIterator = 0;
 	for(innerIterator = 0; innerIterator < innerPoints.size() - 1;++innerIterator){
 
-		newVerticalIncrement =  std::abs(innerPoints[innerIterator+1].getY() - innerPoints[innerIterator].getY()) >
-	 	 	 	 	 	 	    std::abs(innerPoints[innerIterator+1].getX() - innerPoints[innerIterator].getX());
+		newVerticalIncrement =  std::abs(innerPoints[innerIterator+1].getR() - innerPoints[innerIterator].getR()) >
+	 	 	 	 	 	 	    std::abs(innerPoints[innerIterator+1].getZ() - innerPoints[innerIterator].getZ());
 
 		if(verticalIncrement == newVerticalIncrement){
-			data->addQuad(innerPoints[innerIterator],
-						  innerPoints[innerIterator+1],
-						  outerPoints[outerIterator+1],
+			data->addQuad(innerPoints[innerIterator+1],
+						  innerPoints[innerIterator],
 						  outerPoints[outerIterator],
+						  outerPoints[outerIterator+1],
 						  type);
 
 			++outerIterator;
@@ -511,17 +509,17 @@ void MeshGenerator::generateQuads(ids_t type){
 			verticalIncrement = newVerticalIncrement;
 
 			data->addQuad(innerPoints[innerIterator],
-						  outerPoints[outerIterator+2],
+						  outerPoints[outerIterator],
 					 	  outerPoints[outerIterator+1],
-					 	  outerPoints[outerIterator],
+					 	  outerPoints[outerIterator+2],
 					 	  type);
 
 			outerIterator += 2;
 
-			data->addQuad(innerPoints[innerIterator],
-					 	  innerPoints[innerIterator+1],
-					 	  outerPoints[outerIterator+1],
+			data->addQuad(innerPoints[innerIterator+1],
+					 	  innerPoints[innerIterator],
 					 	  outerPoints[outerIterator],
+					 	  outerPoints[outerIterator+1],
 					 	  type);
 
 			++outerIterator;
@@ -532,26 +530,26 @@ void MeshGenerator::generateQuads(ids_t type){
 }
 void MeshGenerator::generatePoints(std::vector<Point>& vector,
 								   Point start,
-								   coordinates_t incrementX,
-								   coordinates_t incrementY,
+								   coordinates_t incrementZ,
+								   coordinates_t incrementR,
 								   index_t iterations,
-								   coordinates_t fixFirstIncrementX,
-								   coordinates_t fixFirstIncrementY){
+								   coordinates_t fixFirstIncrementZ,
+								   coordinates_t fixFirstIncrementR){
 
-	coordinates_t X = start.getX();
-	coordinates_t Y = start.getY();
+	coordinates_t Z = start.getZ();
+	coordinates_t R = start.getR();
 
 	for(index_t i = 0; i < iterations; ++i){
-		Point point(X,Y);
+		Point point(Z,R);
 		point.setID(data->addPoint(point));
 		vector.push_back(point);
 
 		if(i == 0){
-			X += incrementX + fixFirstIncrementX;
-			Y += incrementY + fixFirstIncrementY;
+			Z += incrementZ + fixFirstIncrementZ;
+			R += incrementR + fixFirstIncrementR;
 		}else{
-			X += incrementX;
-			Y += incrementY;
+			Z += incrementZ;
+			R += incrementR;
 		}
 	}
 }
@@ -561,26 +559,26 @@ void MeshGenerator::generateFixedPoints(std::vector<Point>& vector,
 										Point start,
 			   	   	    	 	 	 	coordinates_t increment,
 			   	   	    	 	 	 	coordinates_t mainIncrementMultiplier,
-			   	   	    	 	 	 	bool fixX,
+			   	   	    	 	 	 	bool fixZ,
 			   	   	    	 	 	 	index_t iterations,
 			   	   	    	 	 	 	index_t globalIteration,
 			   	   	    	 	 	 	index_t& fixedPoints){
 
-	coordinates_t X = start.getX();
-	coordinates_t Y = start.getY();
+	coordinates_t Z = start.getZ();
+	coordinates_t R = start.getR();
 
 
 	for(index_t i = 0; i < iterations; ++i){
 
-		if(fixX){
-			X += mainIncrementMultiplier*(sizes[fixedPoints] + fixingIncremenst[fixedPoints] * ((coordinates_t)globalIteration+1));
-			Y += increment;
+		if(fixZ){
+			Z += mainIncrementMultiplier*(sizes[fixedPoints] + fixingIncremenst[fixedPoints] * ((coordinates_t)globalIteration+1));
+			R += increment;
 		}else{
-			X += increment;
-			Y += mainIncrementMultiplier*(sizes[fixedPoints] + fixingIncremenst[fixedPoints] * ((coordinates_t)globalIteration+1));
+			Z += increment;
+			R += mainIncrementMultiplier*(sizes[fixedPoints] + fixingIncremenst[fixedPoints] * ((coordinates_t)globalIteration+1));
 		}
 
-		Point point(X,Y);
+		Point point(Z,R);
 		point.setID(data->addPoint(point));
 
 		vector.push_back(point);
@@ -592,25 +590,25 @@ void MeshGenerator::generateFixedPointsInverseOrder(std::vector<Point>& vector,
 						 	 	 	 	 	 	   	Point start,
 						 	 	 	 	 	 	   	coordinates_t increment,
 						 	 	 	 	 	 	   	coordinates_t mainIncrementMultiplier,
-						 	 	 	 	 	 	   	bool fixX,
+						 	 	 	 	 	 	   	bool fixZ,
 						 	 	 	 	 	 	   	index_t iterations,
 						 	 	 	 	 	 	   	index_t globalIteration,
 						 	 	 	 	 	 	   	index_t& fixedPoints){
-	coordinates_t X = start.getX();
-	coordinates_t Y = start.getY();
+	coordinates_t Z = start.getZ();
+	coordinates_t R = start.getR();
 	std::vector<Point> temporalStore;
 
 	for(index_t i = iterations-1; i > 0; --i){
 
-		if(fixX){
-			X -= mainIncrementMultiplier*(sizes[fixedPoints + i - 1] + fixingIncremenst[fixedPoints + i - 1] * ((coordinates_t)globalIteration+1));
-			Y += increment;
+		if(fixZ){
+			Z -= mainIncrementMultiplier*(sizes[fixedPoints + i - 1] + fixingIncremenst[fixedPoints + i - 1] * ((coordinates_t)globalIteration+1));
+			R += increment;
 		}else{
-			Y -= mainIncrementMultiplier*(sizes[fixedPoints + i - 1] + fixingIncremenst[fixedPoints + i - 1] * ((coordinates_t)globalIteration+1));
-			X += increment;
+			R -= mainIncrementMultiplier*(sizes[fixedPoints + i - 1] + fixingIncremenst[fixedPoints + i - 1] * ((coordinates_t)globalIteration+1));
+			Z += increment;
 		}
 
-		Point point(X,Y);
+		Point point(Z,R);
 		point.setID(data->addPoint(point));
 
 		temporalStore.push_back(point);
@@ -630,40 +628,40 @@ void MeshGenerator::initTransitionData(index_t numberOfFixingLayers){
 }
 
 void MeshGenerator::calculateSizes(){
-	coordinates_t xDifference;
-	coordinates_t yDifference;
+	coordinates_t zDifference;
+	coordinates_t rDifference;
 
 	sizes.clear();
 	sizes.push_back(0.0);
 
 	for(index_t  i = 1; i < originalInnerPoints.size(); ++i){
-		xDifference = std::abs(originalInnerPoints[i].getX() - originalInnerPoints[i-1].getX());
-		yDifference = std::abs(originalInnerPoints[i].getY() - originalInnerPoints[i-1].getY());
+		zDifference = std::abs(originalInnerPoints[i].getZ() - originalInnerPoints[i-1].getZ());
+		rDifference = std::abs(originalInnerPoints[i].getR() - originalInnerPoints[i-1].getR());
 
-		if(xDifference > yDifference){
-			sizes.push_back(xDifference);
+		if(zDifference > rDifference){
+			sizes.push_back(zDifference);
 		}else{
-			sizes.push_back(yDifference);
+			sizes.push_back(rDifference);
 		}
 	}
 }
 
 void MeshGenerator::calculateBlockSize(){
 
-	coordinates_t xDifference;
-	coordinates_t yDifference;
+	coordinates_t zDifference;
+	coordinates_t rDifference;
 	coordinates_t maxDifference;
 
 	blockSize = 0.0;
 
 	for(index_t  i = 1; i < originalInnerPoints.size(); ++i){
-		xDifference = std::abs(originalInnerPoints[i].getX() - originalInnerPoints[i-1].getX());
-		yDifference = std::abs(originalInnerPoints[i].getY() - originalInnerPoints[i-1].getY());
+		zDifference = std::abs(originalInnerPoints[i].getZ() - originalInnerPoints[i-1].getZ());
+		rDifference = std::abs(originalInnerPoints[i].getR() - originalInnerPoints[i-1].getR());
 
-		if(xDifference > yDifference){
-			maxDifference = xDifference;
+		if(zDifference > rDifference){
+			maxDifference = zDifference;
 		}else{
-			maxDifference = yDifference;
+			maxDifference = rDifference;
 		}
 		if(blockSize < maxDifference)
 			blockSize = maxDifference;
@@ -673,30 +671,30 @@ void MeshGenerator::calculateBlockSize(){
 void MeshGenerator::calculateFixingLayers(){
 	index_t baseFixingLayers = numberOfFixingLayers;
 
-	coordinates_t max_x = 0;
-	coordinates_t max_y = 0;
+	coordinates_t max_z = 0;
+	coordinates_t max_r = 0;
 
-	index_t max_fixing_x = 0;
-	index_t max_fixing_y = 0;
+	index_t max_fixing_z = 0;
+	index_t max_fixing_r = 0;
 
 	for(index_t  i = 1; i < this->innerPoints.size(); ++i){
-		if(max_x < this->innerPoints[i].getX()){
-			max_x = this->innerPoints[i].getX();
+		if(max_z < this->innerPoints[i].getZ()){
+			max_z = this->innerPoints[i].getZ();
 		}
 
-		if(max_y < this->innerPoints[i].getY()){
-			max_y = this->innerPoints[i].getY();
+		if(max_r < this->innerPoints[i].getR()){
+			max_r = this->innerPoints[i].getR();
 		}
 	}
 
-	max_fixing_x = (index_t) ((this->data->getMaxX() - max_x) / blockSize);
-	max_fixing_y = (index_t) ((this->data->getMaxY() - max_y) / blockSize);
+	max_fixing_z = (index_t) ((this->data->getMaxZ() - max_z) / blockSize);
+	max_fixing_r = (index_t) ((this->data->getMaxR() - max_r) / blockSize);
 
-	if(max_fixing_x < numberOfFixingLayers)
-		numberOfFixingLayers = max_fixing_x;
+	if(max_fixing_z < numberOfFixingLayers)
+		numberOfFixingLayers = max_fixing_z;
 
-	if(max_fixing_y < numberOfFixingLayers)
-		numberOfFixingLayers = max_fixing_y;
+	if(max_fixing_r < numberOfFixingLayers)
+		numberOfFixingLayers = max_fixing_r;
 
 }
 
@@ -720,23 +718,23 @@ void MeshGenerator::calculateFixIncrements(){
 index_t MeshGenerator::findTransition(std::vector<Point>& points,index_t start){
 	index_t i = start;
 	bool changeFound = false;
-	bool XgraterThanY = false;
+	bool ZgraterThanR = false;
 
-	coordinates_t deltaX;
-	coordinates_t deltaY;
+	coordinates_t deltaZ;
+	coordinates_t deltaR;
 
-	deltaX = points[i+1].getX() - points[i].getX();
-	deltaY = points[i+1].getY() - points[i].getY();
+	deltaZ = points[i+1].getZ() - points[i].getZ();
+	deltaR = points[i+1].getR() - points[i].getR();
 
-	XgraterThanY = std::abs(deltaY) < std::abs(deltaX);
+	ZgraterThanR = std::abs(deltaR) < std::abs(deltaZ);
 
 	while(!changeFound && ((i+1) < points.size() )){
 
-		deltaX = points[i+1].getX() - points[i].getX();
-		deltaY = points[i+1].getY() - points[i].getY();
+		deltaZ = points[i+1].getZ() - points[i].getZ();
+		deltaR = points[i+1].getR() - points[i].getR();
 
 		++i;
-		changeFound = XgraterThanY ^ (std::abs(deltaY) < std::abs(deltaX));
+		changeFound = ZgraterThanR ^ (std::abs(deltaR) < std::abs(deltaZ));
 	}
 
 	return i - 1;
@@ -764,7 +762,7 @@ void MeshGenerator::addRow(std::vector<Point>& points, coordinates_t increment,i
 	}
 
 	for(index_t j = firstPoint; j <= lastPoint;++j){
-		Point newPoint(points[j].getX(),points[j].getY()+increment);
+		Point newPoint(points[j].getZ(),points[j].getR()+increment);
 		newPoint.setID(data->addPoint(newPoint));
 		newPoints.push_back(newPoint);
 	}
@@ -781,16 +779,16 @@ void MeshGenerator::addRow(std::vector<Point>& points, coordinates_t increment,i
 	for(index_t j = firstPoint; j < lastPoint;++j){
 
 		if(increment > 0.0){
-			data->addQuad(points[j],
-						  points[j+1],
-						  newPoints[j+2],
+			data->addQuad(points[j+1],
+						  points[j],
 						  newPoints[j+1],
+						  newPoints[j+2],
 						  type);
 		}else{
-			data->addQuad(newPoints[j+1-2],
-					  	  newPoints[j+2-2],
-					  	  points[j+1],
-						  points[j],
+			data->addQuad(newPoints[j+2-2],
+					  	  newPoints[j+1-2],
+					  	  points[j],
+						  points[j+1],
 						  type);
 		}
 	}
@@ -823,7 +821,7 @@ void MeshGenerator::addInnerColumn(std::vector<Point>& points, coordinates_t inc
 	}
 
 	for(index_t j = 0; j < newPointsCounter;++j){
-		Point newPoint(points[j+newPointsOffset].getX()+increment,points[j+newPointsOffset].getY());
+		Point newPoint(points[j+newPointsOffset].getZ()+increment,points[j+newPointsOffset].getR());
 		newPoint.setID(data->addPoint(newPoint));
 		newPoints.push_back(newPoint);
 	}
@@ -837,16 +835,16 @@ void MeshGenerator::addInnerColumn(std::vector<Point>& points, coordinates_t inc
 	for(index_t j = 0; j < newPointsCounter;++j){
 
 		if(increment > 0.0){
-			data->addQuad(newPoints[j+newPointsOffset],
-						  newPoints[j+1+newPointsOffset],
-						  points[j+1+newPointsOffset],
-						  points[j+newPointsOffset],
-						  type);
-		}else{
 			data->addQuad(newPoints[j+1+newPointsOffset],
 						  newPoints[j+newPointsOffset],
-					  	  points[j+newPointsOffset],
+						  points[j+newPointsOffset],
+						  points[j+1+newPointsOffset],
+						  type);
+		}else{
+			data->addQuad(newPoints[j+newPointsOffset],
+						  newPoints[j+1+newPointsOffset],
 					  	  points[j+1+newPointsOffset],
+					  	  points[j+newPointsOffset],
 						  type);
 		}
 	}
@@ -879,7 +877,7 @@ void MeshGenerator::addColumn(std::vector<Point>& points, coordinates_t incremen
 	}
 
 	for(index_t j = 0; j <= newPointsCounter;++j){
-		Point newPoint(points[j+newPointsOffset].getX()+increment,points[j+newPointsOffset].getY());
+		Point newPoint(points[j+newPointsOffset].getZ()+increment,points[j+newPointsOffset].getR());
 		newPoint.setID(data->addPoint(newPoint));
 		newPoints.push_back(newPoint);
 	}
@@ -893,16 +891,16 @@ void MeshGenerator::addColumn(std::vector<Point>& points, coordinates_t incremen
 	for(index_t j = 0; j < newPointsCounter;++j){
 
 		if(increment > 0.0){
-			data->addQuad(points[j+newPointsOffset],
-						  points[j+1+newPointsOffset],
-						  newPoints[j+1+newPointsOffset+1],
+			data->addQuad(points[j+1+newPointsOffset],
+						  points[j+newPointsOffset],
 						  newPoints[j+newPointsOffset+1],
+						  newPoints[j+1+newPointsOffset+1],
 						  type);
 		}else{
-			data->addQuad(points[j+newPointsOffset],
-						  points[j+1+newPointsOffset],
-						  newPoints[j+1+newPointsOffset],
-					  	  newPoints[j+newPointsOffset],
+			data->addQuad(points[j+1+newPointsOffset],
+						  points[j+newPointsOffset],
+						  newPoints[j+newPointsOffset],
+					  	  newPoints[j+1+newPointsOffset],
 						  type);
 		}
 	}
@@ -911,8 +909,8 @@ void MeshGenerator::addColumn(std::vector<Point>& points, coordinates_t incremen
 }
 
 void MeshGenerator::generateTransitionTwoBlocs(std::vector<Point>& points,
-											   coordinates_t sizeX,
-											   coordinates_t sizeY,
+											   coordinates_t sizeZ,
+											   coordinates_t sizeR,
 											   std::vector<Point>& outPointsVector,
 											   index_t start,
 											   index_t end,
@@ -932,12 +930,12 @@ void MeshGenerator::generateTransitionTwoBlocs(std::vector<Point>& points,
 	outerDownPoint = firstPoint;
 
 	while(i < end){
-		outerMiddlePoint = Point(points[i+2].getX() + sizeX*2.0,points[i+2].getY() + sizeY*2.0);
-		outerUpPoint = Point(points[i+4].getX() + sizeX*2.0,points[i+4].getY() + sizeY*2.0);
+		outerMiddlePoint = Point(points[i+2].getZ() + sizeZ*2.0,points[i+2].getR() + sizeR*2.0);
+		outerUpPoint = Point(points[i+4].getZ() + sizeZ*2.0,points[i+4].getR() + sizeR*2.0);
 
-		innerDownPoint = Point(points[i+1].getX() + sizeX,points[i+1].getY() + sizeY);
-		innerMiddlePoint = Point(points[i+2].getX() + sizeX,points[i+2].getY() + sizeY);
-		innerUpPoint = Point(points[i+3].getX() + sizeX,points[i+3].getY() + sizeY);
+		innerDownPoint = Point(points[i+1].getZ() + sizeZ,points[i+1].getR() + sizeR);
+		innerMiddlePoint = Point(points[i+2].getZ() + sizeZ,points[i+2].getR() + sizeR);
+		innerUpPoint = Point(points[i+3].getZ() + sizeZ,points[i+3].getR() + sizeR);
 
 
 		outerMiddlePoint.setID(this->data->addPoint(outerMiddlePoint));
@@ -949,7 +947,7 @@ void MeshGenerator::generateTransitionTwoBlocs(std::vector<Point>& points,
 		outPointsVector.push_back(outerMiddlePoint);
 		outPointsVector.push_back(outerUpPoint);
 
-		if(!inverseOrder){
+		if(inverseOrder){
 			this->data->addQuad(outerDownPoint,points[i],points[i+1],innerDownPoint,type);
 			this->data->addQuad(points[i+1],points[i+2],innerMiddlePoint,innerDownPoint,type);
 			this->data->addQuad(outerDownPoint,innerDownPoint,innerMiddlePoint,outerMiddlePoint,type);
@@ -988,7 +986,7 @@ void MeshGenerator::addTowBlocksTransition(std::vector<Point>& points,coordinate
 	/*Add checks??*/
 
 	/*Left blocks*/
-	firstPoint = Point(points[0].getX() - size*2,points[0].getY());
+	firstPoint = Point(points[0].getZ() - size*2,points[0].getR());
 	firstPoint.setID(this->data->addPoint(firstPoint));
 
 	newPoints.push_back(firstPoint);
@@ -1004,12 +1002,12 @@ void MeshGenerator::addTowBlocksTransition(std::vector<Point>& points,coordinate
 
 	/*Corner block*/
 
-	lastPoint = Point(points[firstPointChange].getX() - size*2,points[firstPointChange].getY()+size*2);
+	lastPoint = Point(points[firstPointChange].getZ() - size*2,points[firstPointChange].getR()+size*2);
 	lastPoint.setID(this->data->addPoint(lastPoint));
-	firstPoint = Point(points[firstPointChange].getX(),points[firstPointChange].getY()+size*2);
+	firstPoint = Point(points[firstPointChange].getZ(),points[firstPointChange].getR()+size*2);
 	firstPoint.setID(this->data->addPoint(firstPoint));
 
-	this->data->addQuad(lastPoint,newPoints[newPoints.size()-1],points[firstPointChange],firstPoint,outerCellType);
+	this->data->addQuad(firstPoint,points[firstPointChange],newPoints[newPoints.size()-1],lastPoint,outerCellType);
 	newPoints.push_back(lastPoint);
 	newPoints.push_back(firstPoint);
 
@@ -1026,12 +1024,12 @@ void MeshGenerator::addTowBlocksTransition(std::vector<Point>& points,coordinate
 
 	/*Corner block*/
 
-	lastPoint = Point(points[middlePointChange].getX() + size*2,points[middlePointChange].getY()+size*2);
+	lastPoint = Point(points[middlePointChange].getZ() + size*2,points[middlePointChange].getR()+size*2);
 	lastPoint.setID(this->data->addPoint(lastPoint));
-	firstPoint = Point(points[middlePointChange].getX() + size*2,points[middlePointChange].getY());
+	firstPoint = Point(points[middlePointChange].getZ() + size*2,points[middlePointChange].getR());
 	firstPoint.setID(this->data->addPoint(firstPoint));
 
-	this->data->addQuad(lastPoint,newPoints[newPoints.size()-1],points[middlePointChange],firstPoint,outerCellType);
+	this->data->addQuad(firstPoint,points[middlePointChange],newPoints[newPoints.size()-1],lastPoint,outerCellType);
 	newPoints.push_back(lastPoint);
 	newPoints.push_back(firstPoint);
 
@@ -1066,7 +1064,7 @@ void MeshGenerator::addInnerLayer(std::vector<Point>& points,coordinates_t size,
 	this->innerPoints.clear();
 
 	if(hasPadding){
-		padding = this->outerPoints[this->outerPoints.size()-1].getX() - this->outerPoints[0].getX();
+		padding = this->outerPoints[this->outerPoints.size()-1].getZ() - this->outerPoints[0].getZ();
 		padding = (padding - (((middlePointChange-firstPointChange)-2)*size))/2;
 	}else{
 		padding = size;
@@ -1133,9 +1131,10 @@ void MeshGenerator::addInnerTransition(std::vector<Point>& points,coordinates_t 
 		outPoints.push_back(downPointTwo);
 		outPoints.push_back(upperPoint);
 
-		this->data->addQuad(points[0],downPointOne,middlePoint,points[1],innerCellType);
-		this->data->addQuad(downPointOne,downPointTwo,upperPoint,middlePoint,innerCellType);
-		this->data->addQuad(points[1],middlePoint,upperPoint,points[2],innerCellType);
+		this->data->addQuad(points[1],middlePoint,downPointOne,points[0],innerCellType);
+		this->data->addQuad(middlePoint,upperPoint,downPointTwo,downPointOne,innerCellType);
+		this->data->addQuad(points[2],upperPoint,middlePoint,points[1],innerCellType);
+
 	}else{
 		upperPoint = points[0] + Point(2.0*size,0.0);
 		upperPoint.setID(this->data->addPoint(upperPoint));
@@ -1158,11 +1157,9 @@ void MeshGenerator::addInnerTransition(std::vector<Point>& points,coordinates_t 
 	cornerPointOne.setID(this->data->addPoint(cornerPointOne));
 	cornerPointTwo = outPoints[outPoints.size()-1];
 
-
-
-	this->data->addQuad(points[firstPointChange],points[firstPointChange-1],cornerPointOne,points[firstPointChange+1],innerCellType);
-	this->data->addQuad(points[firstPointChange-1],points[firstPointChange-2],cornerPointTwo,cornerPointOne,innerCellType);
-	this->data->addQuad(points[firstPointChange+2],points[firstPointChange+1],cornerPointOne,cornerPointTwo,innerCellType);
+	this->data->addQuad(points[firstPointChange+1],cornerPointOne,points[firstPointChange-1],points[firstPointChange],innerCellType);
+	this->data->addQuad(cornerPointOne,cornerPointTwo,points[firstPointChange-2],points[firstPointChange-1],innerCellType);
+	this->data->addQuad(cornerPointTwo,cornerPointOne,points[firstPointChange+1],points[firstPointChange+2],innerCellType);
 
 
 
@@ -1185,10 +1182,9 @@ void MeshGenerator::addInnerTransition(std::vector<Point>& points,coordinates_t 
 	//cornerPointTwo.setID(this->data->addPoint(cornerPointTwo));
 
 
-
-	this->data->addQuad(points[middlePointChange],points[middlePointChange-1],cornerPointOne,points[middlePointChange+1],innerCellType);
-	this->data->addQuad(points[middlePointChange-1],points[middlePointChange-2],cornerPointTwo,cornerPointOne,innerCellType);
-	this->data->addQuad(points[middlePointChange+2],points[middlePointChange+1],cornerPointOne,cornerPointTwo,innerCellType);
+	this->data->addQuad(points[middlePointChange+1],cornerPointOne,points[middlePointChange-1],points[middlePointChange],innerCellType);
+	this->data->addQuad(cornerPointOne,cornerPointTwo,points[middlePointChange-2],points[middlePointChange-1],innerCellType);
+	this->data->addQuad(cornerPointTwo,cornerPointOne,points[middlePointChange+1],points[middlePointChange+2],innerCellType);
 
 	/*right  column*/
 	generateTransitionTwoBlocs(points,
@@ -1212,9 +1208,9 @@ void MeshGenerator::addInnerTransition(std::vector<Point>& points,coordinates_t 
 
 		outPoints.push_back(downPointTwo);
 
-		this->data->addQuad(points[points.size()-1],points[points.size()-2],middlePoint,downPointOne,innerCellType);
-		this->data->addQuad(downPointTwo,downPointOne,middlePoint,upperPoint,innerCellType);
-		this->data->addQuad(points[points.size()-3],upperPoint,middlePoint,points[points.size()-2],innerCellType);
+		this->data->addQuad(downPointOne,middlePoint,points[points.size()-2],points[points.size()-1],innerCellType);
+		this->data->addQuad(upperPoint,middlePoint,downPointOne,downPointTwo,innerCellType);
+		this->data->addQuad(points[points.size()-2],middlePoint,upperPoint,points[points.size()-3],innerCellType);
 	}
 }
 
@@ -1223,20 +1219,20 @@ coordinates_t MeshGenerator::calculateAverageSize(std::vector<Point>& vector){
 	coordinates_t sum = 0.0;
 	coordinates_t count = (coordinates_t)(vector.size()-1);
 	coordinates_t result = 0.0;
-	coordinates_t diferenceX;
-	coordinates_t diferenceY;
+	coordinates_t diferenceZ;
+	coordinates_t diferenceR;
 
 	if(count > 0){
 
 		for(index_t i = 1; i < vector.size();++i)
 		{
-			diferenceX = std::abs(vector[i].getX()-vector[i-1].getX());
-			diferenceY = std::abs(vector[i].getY()-vector[i-1].getY());
+			diferenceZ = std::abs(vector[i].getZ()-vector[i-1].getZ());
+			diferenceR = std::abs(vector[i].getR()-vector[i-1].getR());
 
-			if(diferenceX > diferenceY){
-				sum += diferenceX;
+			if(diferenceZ > diferenceR){
+				sum += diferenceZ;
 			}else{
-				sum += diferenceY;
+				sum += diferenceR;
 			}
 		}
 
@@ -1249,19 +1245,19 @@ coordinates_t MeshGenerator::calculateAverageSize(std::vector<Point>& vector){
 coordinates_t MeshGenerator::getMinSize(std::vector<Point>& vector){
 	coordinates_t result = 0.0;
 	bool firstIteration = true;
-	coordinates_t diferenceX;
-	coordinates_t diferenceY;
+	coordinates_t diferenceZ;
+	coordinates_t diferenceR;
 	coordinates_t diference;
 
 	for(index_t i = 1; i < vector.size();++i)
 	{
-		diferenceX = std::abs(vector[i].getX()-vector[i-1].getX());
-		diferenceY = std::abs(vector[i].getY()-vector[i-1].getY());
+		diferenceZ = std::abs(vector[i].getZ()-vector[i-1].getZ());
+		diferenceR = std::abs(vector[i].getR()-vector[i-1].getR());
 
-		if(diferenceX > diferenceY){
-			diference = diferenceX;
+		if(diferenceZ > diferenceR){
+			diference = diferenceZ;
 		}else{
-			diference = diferenceY;
+			diference = diferenceR;
 		}
 
 		if((diference < result)||firstIteration){
@@ -1282,7 +1278,7 @@ void MeshGenerator::verticalEndQuads(){
 	this->outerPoints = this->innerPoints;
 	this->innerPoints.clear();
 
-	size = this->outerPoints[1].getY() - this->outerPoints[0].getY();
+	size = this->outerPoints[1].getR() - this->outerPoints[0].getR();
 
 	/*Generate the points in the middle*/
 	for(index_t i = 0; i < verticalPoints-1;++i)
@@ -1298,28 +1294,32 @@ void MeshGenerator::verticalEndQuads(){
 	/*Generate the left quads */
 	for(index_t i = 0; i < verticalPoints-2;++i)
 	{
-		this->data->addQuad(this->outerPoints[i+1],this->outerPoints[i],this->innerPoints[i],this->innerPoints[i+1],outerCellType);
+		this->data->addQuad(this->outerPoints[i],
+							this->outerPoints[i+1],
+							this->innerPoints[i+1],
+							this->innerPoints[i],
+							outerCellType);
 		middleQuadsStart = i + 1;
 	}
 	/*Generate the middle quads*/
-	this->data->addQuad(this->outerPoints[middleQuadsStart+2],
+	this->data->addQuad(this->outerPoints[middleQuadsStart],
 						this->outerPoints[middleQuadsStart+1],
-						this->outerPoints[middleQuadsStart],
+						this->outerPoints[middleQuadsStart+2],
 						this->innerPoints[middleQuadsStart],
 						innerCellType);
 
 	this->data->addQuad(this->innerPoints[middleQuadsStart],
-						this->outerPoints[middleQuadsStart+4],
-						this->outerPoints[middleQuadsStart+3],
 						this->outerPoints[middleQuadsStart+2],
+						this->outerPoints[middleQuadsStart+3],
+						this->outerPoints[middleQuadsStart+4],
 						innerCellType);
 
 	for(index_t i = 0; i < verticalPoints-2;++i)
 	{
-		this->data->addQuad(this->innerPoints[middleQuadsStart+4+i],
-							this->outerPoints[middleQuadsStart-i],
+		this->data->addQuad(this->innerPoints[middleQuadsStart+4+i+1],
 							this->outerPoints[middleQuadsStart-i-1],
-							this->innerPoints[middleQuadsStart+4+i+1],
+							this->outerPoints[middleQuadsStart-i],
+							this->innerPoints[middleQuadsStart+4+i],
 							innerCellType);
 	}
 }
@@ -1334,7 +1334,7 @@ void MeshGenerator::horizontalEndQuads(){
 	this->outerPoints = this->innerPoints;
 	this->innerPoints.clear();
 
-	size = this->outerPoints[1].getY() - this->outerPoints[0].getY();
+	size = this->outerPoints[1].getR() - this->outerPoints[0].getR();
 
 	/*Generate the points in the middle*/
 	for(index_t i = 0; i < horizontalPoints;++i)
@@ -1348,27 +1348,27 @@ void MeshGenerator::horizontalEndQuads(){
 
 	/*Generate the left quad*/
 	this->data->addQuad(this->innerPoints[0],
-						this->outerPoints[2],
-						this->outerPoints[1],
 						this->outerPoints[0],
+						this->outerPoints[1],
+						this->outerPoints[2],
 						innerCellType);
 
 
 	/*Generate the middle quads */
 	for(index_t i = 0; i < horizontalPoints-1;++i)
 	{
-		this->data->addQuad(this->innerPoints[i],
-							this->innerPoints[i+1],
-							this->outerPoints[i+1],
+		this->data->addQuad(this->innerPoints[i+1],
+							this->innerPoints[i],
 							this->outerPoints[i],
+							this->outerPoints[i+1],
 							innerCellType);
 	}
 
 	/*Generate the right quad*/
 	this->data->addQuad(this->innerPoints[horizontalPoints-1],
-						this->outerPoints[this->outerPoints.size()-1],
-						this->outerPoints[this->outerPoints.size()-2],
 						this->outerPoints[this->outerPoints.size()-3],
+						this->outerPoints[this->outerPoints.size()-2],
+						this->outerPoints[this->outerPoints.size()-1],
 						innerCellType);
 
 }

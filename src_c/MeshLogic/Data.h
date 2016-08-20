@@ -41,8 +41,8 @@ private:
 	std::map<ids_t,coordinates_t> solution;
 	std::map<ids_t,std::vector<std::vector<coordinates_t> > > tension;
 
-	std::vector<ids_t> leftBoundaryPoints;
-	std::vector<ids_t> rigthBoundaryPoints;
+	std::vector<ids_t> upperBoundaryPoints;
+	std::vector<ids_t> downBoundaryPoints;
 
 	std::vector<ids_t> membraneOuterPoints;
 	std::vector<ids_t> membraneInnerPoints;
@@ -50,16 +50,16 @@ private:
 	std::vector<std::vector<ids_t> > membraneLayersPoints;
 	std::map<ids_t,ids_t> membraneLayersQuads;
 
-	coordinates_t maxX;
-	coordinates_t maxY;
-	coordinates_t minX;
-	coordinates_t minY;
+	coordinates_t maxZ;
+	coordinates_t maxR;
+	coordinates_t minZ;
+	coordinates_t minR;
 
 	std::string path;
 	std::string fileSufix;
 
-	coordinates_t centerX;
-	coordinates_t centerY;
+	coordinates_t centerZ;
+	coordinates_t centerR;
 
 	coordinates_t funyoung_in;
 	coordinates_t funyoung_membrane;
@@ -76,8 +76,6 @@ private:
 public:
 	Data();
 	virtual ~Data();
-
-	void fakeInit();
 
 	void setPath(const std::string& value);
 	std::string getPath();
@@ -107,10 +105,10 @@ public:
 	ids_t getNextPointID();
 	ids_t getNextQuadID();
 
-	coordinates_t getMaxX();
-	coordinates_t getMaxY();
-	coordinates_t getMinX();
-	coordinates_t getMinY();
+	coordinates_t getMaxZ();
+	coordinates_t getMaxR();
+	coordinates_t getMinZ();
+	coordinates_t getMinR();
 
 	void initTypes(ids_t  innerCell,ids_t outerCell,ids_t membrane);
 	ids_t getTypeInnerCell();
@@ -135,8 +133,8 @@ public:
 	ids_t addQuad(Quad quad,ids_t type = 0);
 	ids_t addQuad(const Point& point1,const Point& point2,const Point& point3,const Point& point4,ids_t type = 0);
 
-	void saveInFile(const std::string& Xfile,
-					const std::string& Yfile,
+	void saveInFile(const std::string& Rfile,
+					const std::string& Zfile,
 					const std::string& QUADfile,
 					const std::string& MaterialFile,
 					const std::string& BoundaryFile,
@@ -177,8 +175,8 @@ public:
 	void addMembraneQuadsIDs(ids_t quad,ids_t layer);
 	void addMembraneLayerFront(const std::vector<Point>& points);
 
-	coordinates_t getCellXCenter();
-	coordinates_t getCellYCenter();
+	coordinates_t getCellZCenter();
+	coordinates_t getCellRCenter();
 
 private:
 	std::string addPath(const std::string& file);

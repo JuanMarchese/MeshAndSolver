@@ -10,7 +10,7 @@ SRC_F_ALL+= $(filter-out $(wildcard src_f/def_*.*f90),$(wildcard src_f/*.f90))
 OBJECT_ALL:= ./*.o
 
 
-BINARY:= MeshSolverCppF
+BINARY:= MeshAndSolver
 
 CC  = g++
 FORT = gfortran

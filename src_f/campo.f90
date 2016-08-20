@@ -129,9 +129,6 @@ do jel=1,nelements
           deter= ajaco(1,1)*ajaco(2,2)-ajaco(1,2)*ajaco(2,1)
 
 
-          write(*,*) 'Derminante es ',deter
-
-
           ajacoi(1,1)=ajaco(2,2)/deter
           ajacoi(2,2)=ajaco(1,1)/deter
           ajacoi(1,2)=-ajaco(1,2)/deter
