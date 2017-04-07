@@ -46,7 +46,7 @@ do while(error>epsil .and. nconta< ncota )
    
         qe=0.0
         do i=1,nodpel
-            ns(i)=conect(jel,i)
+            ns(i)=conect(i,jel)
 	        j=ns(i)
             x(i)=coor_x(j)
             y(i)=coor_y(j)

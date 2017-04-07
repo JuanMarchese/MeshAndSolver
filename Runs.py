@@ -104,13 +104,13 @@ def pinzas_file_poisson(cell):
 	return sufix
 
 def pinzas_file_young(cell):
-	sufix = "Pinzas-%sV-%s-%s-%s" % (
-		"{:.1f}".format(cell.potential), "{:.25f}".format(cell.young_in), "{:.25f}".format(cell.young_mem),
-		"{:.25f}".format(cell.young_out))
+	sufix = "Pinzas-%sV-%s" % (
+		"{:.1f}".format(cell.potential),
+		"{:.25f}".format(cell.young_mem))
 		
-	cell.name = "%s-%s-%s" % (
-		"{:.25f}".format(cell.young_in), "{:.25f}".format(cell.young_mem),
-		"{:.25f}".format(cell.young_out))
+	cell.name = "%sV-%s" % (
+		"{:.1f}".format(cell.potential),
+                "{:.25f}".format(cell.young_mem))
 
 	return sufix
 
@@ -194,9 +194,10 @@ def call_program(cell_config, deformation_rep):
 	inner_radius = radius - radius_difference;
 	outer_radius = radius;
 	fileSufix = cell_config.sufix_func(cell_config)
-	command = "/home/juan/workspaceMars/MeshSolverCppF/MeshSolverCppF -p -ir %f -or %f -ci %d -ml %d -is %.25f -os %.25f -ms %.25f -v %f -g %f -i %d -t %.25f -dr %d -path %s -sufix %s -iy %.25f -my %.25f -oy %.25f -ip %.25f -mp %.25f -op %.25f " %	(inner_radius ,outer_radius ,cell_iterations, membrane_layers ,sigma_inner_cell ,sigma_outer_cell ,sigma_membrane ,potential ,ground ,max_iterations , tolerance, deformation_rep, output_path ,fileSufix,funyoung_in,funyoung_membrane,funyoung_out,funposs_in,funposs_membrane,funposs_out)
+	command = "/home/juan/workspaceMars/MeshAndSolver/MeshAndSolver -p -ir %f -or %f -ci %d -ml %d -is %.25f -os %.25f -ms %.25f -v %f -g %f -i %d -t %.25f -dr %d -path %s -sufix %s -iy %.25f -my %.25f -oy %.25f -ip %.25f -mp %.25f -op %.25f " %	(inner_radius ,outer_radius ,cell_iterations, membrane_layers ,sigma_inner_cell ,sigma_outer_cell ,sigma_membrane ,potential ,ground ,max_iterations , tolerance, deformation_rep, output_path ,fileSufix,funyoung_in,funyoung_membrane,funyoung_out,funposs_in,funposs_membrane,funposs_out)
 	
 	call(shlex.split(command))
+	#print(command)
 	# print "---------------------------------------------------------------\n"
 
 	
@@ -204,8 +205,14 @@ def call_program(cell_config, deformation_rep):
 # 1 out
 # 2 mem
 
+def file_fuerza(cell):
+        sufix = "F-V%s-kVm" % ("{:.1f}".format(cell.potential))
+        cell.name = "V%s-kVm" % ("{:.1f}".format(cell.potential))
+
+        return sufix
+
 def file_alta_frecuencia(cell):
-	sufix = "AltaF-V%s--R%s--M%s--S%s-%s-%s--P%s-%s-%s--Y%s-%s-%s" % (
+	sufix = "Pins-V%s--R%s--M%s--S%s-%s-%s--P%s-%s-%s--Y%s-%s-%s" % (
 		"{:.1f}".format(cell.potential),"{:.1f}".format(cell.radius),"{:.5f}".format(cell.radius_difference),
 		"{:.9f}".format(cell.sigma_inner_cell), "{:.9f}".format(cell.sigma_outer_cell),"{:.15f}".format(cell.sigma_membrane),
 		"{:.7f}".format(cell.poisson_in), "{:.7f}".format(cell.poisson_out),"{:.7f}".format(cell.poisson_mem),
@@ -218,6 +225,40 @@ def file_alta_frecuencia(cell):
 		"{:.9f}".format(cell.young_in), "{:.9f}".format(cell.young_out),"{:.9f}".format(cell.young_mem))
 
 	return sufix
+
+def file_pinzas_opticas(cell):
+        sufix = "Pins-V%s--R%s--M%s--Y%s-%s-%s" % (
+                "{:.1f}".format(cell.potential),"{:.1f}".format(cell.radius),"{:.5f}".format(cell.radius_difference),
+                "{:.9f}".format(cell.young_in), "{:.9f}".format(cell.young_out),"{:.9f}".format(cell.young_mem))
+
+        cell.name = "V%s--R%s--M%s--Y%s-%s-%s" % (
+                "{:.1f}".format(cell.potential),"{:.1f}".format(cell.radius),"{:.5f}".format(cell.radius_difference),
+                "{:.9f}".format(cell.young_in), "{:.9f}".format(cell.young_out),"{:.9f}".format(cell.young_mem))
+
+        return sufix
+
+def file_pinzas_opticasPosion(cell):
+        sufix = "Pins-V%s--R%s--M%s--P%s-%s-%s" % (
+                "{:.1f}".format(cell.potential),"{:.1f}".format(cell.radius),"{:.5f}".format(cell.radius_difference),
+                "{:.7f}".format(cell.poisson_in), "{:.7f}".format(cell.poisson_out),"{:.7f}".format(cell.poisson_mem))
+
+        cell.name = "V%s--R%s--M%s--P%s-%s-%s" % (
+                "{:.1f}".format(cell.potential),"{:.1f}".format(cell.radius),"{:.5f}".format(cell.radius_difference),
+                "{:.7f}".format(cell.poisson_in), "{:.7f}".format(cell.poisson_out),"{:.7f}".format(cell.poisson_mem))
+
+        return sufix
+
+def file_pinzas_opticasSigma(cell):
+        sufix = "Pins-V%s--R%s--M%s--S%s-%s-%s" % (
+                "{:.1f}".format(cell.potential),"{:.1f}".format(cell.radius),"{:.5f}".format(cell.radius_difference),
+                "{:.9f}".format(cell.sigma_inner_cell), "{:.9f}".format(cell.sigma_outer_cell),"{:.15f}".format(cell.sigma_membrane))
+
+        cell.name = "V%s--R%s--M%s--S%s-%s-%s" % (
+                "{:.1f}".format(cell.potential),"{:.1f}".format(cell.radius),"{:.5f}".format(cell.radius_difference),
+                "{:.9f}".format(cell.sigma_inner_cell), "{:.9f}".format(cell.sigma_outer_cell),"{:.15f}".format(cell.sigma_membrane))
+
+        return sufix
+
 
 def read_parameters(cell_conf):
 	
@@ -250,10 +291,10 @@ if __name__ == '__main__':
 
 	cell_conf = CellParameters()
 
-	cell_conf.params[cell_conf.cell_iterations_pos].append(20)
+	cell_conf.params[cell_conf.cell_iterations_pos].append(400)
 	cell_conf.params[cell_conf.membrane_layers_pos].append(1)
 
-	cell_conf.params[cell_conf.sufix_func_pos].append(file_alta_frecuencia)
+	cell_conf.params[cell_conf.sufix_func_pos].append(pinzas_file_young)
 	read_parameters(cell_conf);
 
 	iteration_vector = []
@@ -275,3 +316,5 @@ if __name__ == '__main__':
 	num_cores = 8
 	num_defor_iterations = 2
 	results = Parallel(n_jobs=num_cores)(delayed(call_program)(current_cell,num_defor_iterations) for current_cell in cells)
+
+	print("Fianlizado procesamiento")

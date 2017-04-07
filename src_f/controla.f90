@@ -33,17 +33,17 @@ ne=nelements
       nbwt =0
       do kk=1,ne
         do i=1,nodpel
-          ns(i)=conect(kk,i)
+          ns(i)=conect(i,kk)
         enddo
         do  i=1,nodpel-1
 		  ij=i+1
           do j=ij,nodpel
             nb=iabs(ns(i)-ns(j))
-            if(nb.eq.0) then 
+            if(nb.eq.0) then
 			   write(*,*) 'elemento  ',kk,' tiene dos nodos identicos'
 			   write(*,*) 'elemento  ',kk,' tiene dos nodos identicos'
 			   stop
-			endif    
+			endif
             if(nb.gt.nbwt) then
                inbwt=kk
                nbwt =nb
@@ -77,7 +77,7 @@ do nno=1,nnodes
   do kk=1,nelements
      npas=0
      do i=1,nodpel
-       ns(i)=conect(kk,i)
+       ns(i)=conect(i,kk)
        if(nno==ns(i)) npas=1
      enddo
      if(npas==1) then   
@@ -122,7 +122,7 @@ do nno=1,nnodes
   do kk=1,nelements
      npas=0
      do i=1,nodpel
-       ns(i)=conect(kk,i)
+       ns(i)=conect(i,kk)
        if(nno==ns(i)) npas=1
      enddo
      if(npas==1) then   
@@ -165,8 +165,8 @@ ne=nelements
       nbwe =0
       do kk=1,ne
         do i=1,nodpel
-          ns2d(2*i-1)= 2*conect(kk,i)-1
-          ns2d(2*i)  = 2*conect(kk,i)
+          ns2d(2*i-1)= 2*conect(i,kk)-1
+          ns2d(2*i)  = 2*conect(i,kk)
         enddo
         do  i=1,2*nodpel-1
 		  ij=i+1
@@ -210,8 +210,8 @@ do nno=1,2*nnodes
   do kk=1,nelements
      npas=0
      do i=1,nodpel
-       ns2d(2*i-1)=2*conect(kk,i)-1
-       ns2d(2*i)=2*conect(kk,i)
+       ns2d(2*i-1)=2*conect(i,kk)-1
+       ns2d(2*i)=2*conect(i,kk)
        if(nno==ns2d(2*i-1) .or. nno==ns2d(2*i) ) npas=1
      enddo
      if(npas==1) then   
@@ -253,8 +253,8 @@ do nno=1,2*nnodes
   do kk=1,nelements
      npas=0
      do i=1,nodpel
-       ns2d(2*i-1)=2*conect(kk,i)-1
-       ns2d(2*i)=2*conect(kk,i)
+       ns2d(2*i-1)=2*conect(i,kk)-1
+       ns2d(2*i)=2*conect(i,kk)
        if(nno==ns2d(2*i-1) .or. nno==ns2d(2*i) ) npas=1
      enddo
      if(npas==1) then   

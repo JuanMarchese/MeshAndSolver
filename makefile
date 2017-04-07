@@ -17,7 +17,7 @@ FORT = gfortran
 LD  = g++
 
 CFLAGS =
-FFLAGS = -c -g -ffixed-line-length-none -ffree-line-length-none
+FFLAGS = -c -g -ffixed-line-length-none -ffree-line-length-none -O0
 CPPFLAGS = -std=c++11 -c -g
 LDFLAGS = -lgfortran
 

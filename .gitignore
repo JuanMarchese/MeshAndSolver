@@ -36,3 +36,7 @@
 
 #binary
 MeshAndSolver
+
+#results
+FinalRuns
+FinalRuns/*

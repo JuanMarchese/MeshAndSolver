@@ -9,6 +9,7 @@
 #define DATA_H_
 
 #include <vector>
+#include <cmath>
 #include <map>
 #include "Point.h"
 #include "Quad.h"
@@ -178,9 +179,13 @@ public:
 	coordinates_t getCellZCenter();
 	coordinates_t getCellRCenter();
 
+	void scaleMesh(coordinates_t z,coordinates_t r);
+
 private:
 	std::string addPath(const std::string& file);
 	void updateMinimunDifference(Quad quad);
+
+	coordinates_t scale(coordinates_t current_value,coordinates_t max_value,coordinates_t scaling_factor);
 };
 
 #endif /* DATA_H_ */

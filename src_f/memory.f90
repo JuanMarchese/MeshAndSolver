@@ -12,7 +12,7 @@ integer :: number_nodes,nodes_per_elem,number_elements
 
     allocate(coor_x(nnodes))
     allocate(coor_y(nnodes))
-    allocate(conect(nelements,nodpel))
+    allocate(conect(nodpel,nelements))
     allocate(material(nelements))
     allocate(vec_tierra(nnodes))
     allocate(vec_poten(nnodes))
@@ -90,7 +90,7 @@ integer :: i,j
 
     !write(*,*) 'Elementos'
     !do j=1,nelements
-    !    write(*,*) j,' - ',conect(j,1),';',conect(j,2),';',conect(j,3),';',conect(j,4),' -- ',material(j)
+    !    write(*,*) j,' - ',conect(1,j),';',conect(2,j),';',conect(3,j),';',conect(4,j),' -- ',material(j)
     !enddo
 
 

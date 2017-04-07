@@ -88,10 +88,14 @@ void FortranWrapper::copyQuadsData(){
 	ids_t size = quads.size();
 	for(ids_t i = 0;i < size;++i )
 	{
-		__def_variables_MOD_conect[0*size + i] = quads[i].getPoint(0).getID() + 1;
+		/*__def_variables_MOD_conect[0*size + i] = quads[i].getPoint(0).getID() + 1;
 		__def_variables_MOD_conect[1*size + i] = quads[i].getPoint(1).getID() + 1;
 		__def_variables_MOD_conect[2*size + i] = quads[i].getPoint(2).getID() + 1;
-		__def_variables_MOD_conect[3*size + i] = quads[i].getPoint(3).getID() + 1;
+		__def_variables_MOD_conect[3*size + i] = quads[i].getPoint(3).getID() + 1;*/
+		__def_variables_MOD_conect[i*4    ] = quads[i].getPoint(0).getID() + 1;
+		__def_variables_MOD_conect[i*4 + 1] = quads[i].getPoint(1).getID() + 1;
+		__def_variables_MOD_conect[i*4 + 2] = quads[i].getPoint(2).getID() + 1;
+		__def_variables_MOD_conect[i*4 + 3] = quads[i].getPoint(3).getID() + 1;
 	}
 }
 void FortranWrapper::copyBoundaryData(){
@@ -139,7 +143,7 @@ void FortranWrapper::copyMaterialData(){
 void FortranWrapper::solveElectromagnecticField(){
 
 	poisson_();
-	//print_memory_();
+
 	for(ids_t i = 0; i < data->getPoints().size();++i){
 		data->addSolutionPoint(i,__def_solver_MOD_solucion[i]);
 	}
@@ -179,37 +183,57 @@ void FortranWrapper::solveDeformation(){
 		{
 			std::vector<coordinates_t> temp;
 
-			coordinates_t x = 0.0;
-			coordinates_t y = 0.0;
-			coordinates_t r = 0.0;
-			coordinates_t z = 0.0;
-			coordinates_t tita = 0.0;
-			coordinates_t nose = 0.0;
+			coordinates_t r_coordinate = 0.0;
+			coordinates_t z_coordinate = 0.0;
+			coordinates_t rr = 0.0;
+			coordinates_t zz = 0.0;
+			coordinates_t zr = 0.0;
+			coordinates_t titatita = 0.0;
 			coordinates_t lado = 0.0;
 
-			coordinates_t x_value = quads[i].getPoint(0).getR() - quads[i].getPoint(1).getR();
-			coordinates_t y_value = quads[i].getPoint(0).getZ() - quads[i].getPoint(1).getZ();
+			coordinates_t max_r = quads[i].getPoint(0).getR();
+			coordinates_t min_r = quads[i].getPoint(0).getR();
+			coordinates_t max_z = quads[i].getPoint(0).getZ();
+			coordinates_t min_z = quads[i].getPoint(0).getZ();
+			
+			for(ids_t l = 1;l < 4;++l )
+			{
+				if(max_r < quads[i].getPoint(l).getR())
+					max_r = quads[i].getPoint(l).getR();
+				if(min_r > quads[i].getPoint(l).getR())
+					min_r = quads[i].getPoint(l).getR();
+				if(max_z < quads[i].getPoint(l).getZ())
+					max_z = quads[i].getPoint(l).getZ();
+				if(min_z > quads[i].getPoint(l).getZ())
+					min_z = quads[i].getPoint(l).getZ();
+			}
+			
+			coordinates_t r_value = quads[i].getPoint(0).getR() - quads[i].getPoint(2).getR();
+			coordinates_t z_value = quads[i].getPoint(0).getZ() - quads[i].getPoint(2).getZ();
+			//coordinates_t r_value = max_r - min_r;
+			//coordinates_t z_value = max_z - min_z;
 
 
-			lado = sqrt((x_value*x_value)+(y_value*y_value));
+			lado = sqrt((r_value*r_value)+(z_value*z_value));
 
 			for(ids_t j = 0;j < 4;++j )
 			{
-				x += quads[i].getPoint(j).getR() / 4.0;
-				y += quads[i].getPoint(j).getZ() / 4.0;
-				r += __def_variables_MOD_tension[i + j*size + 0*size*4] / 4.0;
-				z += __def_variables_MOD_tension[i + j*size + 1*size*4] / 4.0;
-				tita += __def_variables_MOD_tension[i + j*size + 2*size*4] / 4.0;
-				nose += __def_variables_MOD_tension[i + j*size + 3*size*4] / 4.0;
+				r_coordinate += quads[i].getPoint(j).getR() / 4.0;
+				z_coordinate += quads[i].getPoint(j).getZ() / 4.0;
+				rr += __def_variables_MOD_tension[i + j*size + 0*size*4] / 4.0;
+				zz += __def_variables_MOD_tension[i + j*size + 1*size*4] / 4.0;
+				zr += __def_variables_MOD_tension[i + j*size + 2*size*4] / 4.0;
+				titatita += __def_variables_MOD_tension[i + j*size + 3*size*4] / 4.0;
 			}
 
-			temp.push_back(x);
-			temp.push_back(y);
-			temp.push_back(r);
-			temp.push_back(z);
-			temp.push_back(tita);
-			temp.push_back(nose);
+			temp.push_back(r_coordinate);
+			temp.push_back(z_coordinate);
+			temp.push_back(zz);
+			temp.push_back(rr);
+			temp.push_back(zr);
+			temp.push_back(titatita);
 			temp.push_back(lado);
+			temp.push_back(z_value);
 
 			tesnion[membraneLayer[i]].push_back(temp);
 
@@ -234,6 +258,8 @@ void FortranWrapper::solveProblemsIteratively(){
 
 	char buffer [10];
 	std::string originalSufix = data->getFileSufix();
+
+	//data->scaleMesh(0,2.5);
 
 	if(data->getDeformation_rep() < 1){
 		data->saveVTK(".vtk");

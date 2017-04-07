@@ -2,7 +2,7 @@ subroutine campo2d(nnodes,nelements,nodpel,solution,material,conect,coor_x,coor_
 
 
 implicit none
-integer :: nnodes,nelements,nodpel,conect(nelements,nodpel),material(nelements)
+integer :: nnodes,nelements,nodpel,conect(nodpel,nelements),material(nelements)
 double precision :: grad_x(nnodes),grad_y(nnodes)
 double precision :: gradxel_x(nelements),gradxel_y(nelements)
 
@@ -43,7 +43,7 @@ do jel=1,nelements
    
    
    do i=1,nodpel
-        ns(i)=conect(jel,i)
+        ns(i)=conect(i,jel)
 	    j=ns(i)
         x(i)=coor_x(j)
         y(i)=coor_y(j)

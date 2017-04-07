@@ -25,7 +25,7 @@ DO JEL=1,nelements
     poiss= funposs(mat)
 
     DO I=1,nodpel
-	   j=conect(JEL,I)
+	   j=conect(I,JEL)
        ns2d(2*I-1)=2*j-1
        ns2d(2*I)=2*j
        X(i)=coor_x(j)
@@ -133,24 +133,15 @@ allocate(gauspt(Ngaus),gauswt(Ngaus),phi(Ngaus*Ngaus,nope),dphi(ndimension,Ngaus
 
 
 
-open(unit=111,file='malla_final.dat')
 
-write(111,* )'nodos membrana externa', nod_mem_ext+nod_mem_int
 do kk=1,nod_mem_ext
    jj=nodos_mem(2,kk)
-   write(111,'(i4,5E15.5)') jj,coor_x(jj),coor_x(jj) + solucion2d(2*jj-1),coor_y(jj),coor_y(jj) + solucion2d(2*jj),solucion(jj)
 enddo
 do kk=1,nod_mem_int
    jj=nodos_mem(1,kk)
-   write(111,'(i4,5E15.5)') jj,coor_x(jj),coor_x(jj) + solucion2d(2*jj-1),coor_y(jj),coor_y(jj) + solucion2d(2*jj),solucion(jj)
 enddo
 
-
-write(111,* )'    '
-write(111,* )'    '
-write(111,* )'    '
 DO I=1,nnodes
-    write(111,'(i4,4E15.5)') i,coor_x(i),solucion2d(2*i-1),coor_y(i), solucion2d(2*i)
     coor_x(i)=coor_x(i) + solucion2d(2*i-1)
     coor_y(i)=coor_y(i) + solucion2d(2*i)
 ENDDO
@@ -167,7 +158,7 @@ do kk=1,nelements
     
   do i=1,nope
         
-       j = conect(kk,i)
+       j = conect(i,kk)
        ns(2*i-1)= 2*j-1
        ns(2*i  )= 2*j
        x(i)=coor_x(j)

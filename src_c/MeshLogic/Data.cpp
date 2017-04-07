@@ -272,8 +272,8 @@ void Data::saveTension(const std::string& file,int iteration){
 			coordinates_t z;
 			coordinates_t r;
 
-			z = outer[j][0];
-			r = outer[j][1];
+			r = outer[j][0];
+			z = outer[j][1];
 
 			if(z-centerZ > 0.0)
 				tita= atan(r/(z-centerZ));
@@ -289,10 +289,10 @@ void Data::saveTension(const std::string& file,int iteration){
 			tensionFile << PI - tita;
 
 			tensionFile << "\t";
-			tensionFile << outer[j][0];
+			tensionFile << outer[j][0];//Z
 
 			tensionFile << "\t";
-			tensionFile << outer[j][1];
+			tensionFile << outer[j][1];//R
 
 			tensionFile << "\t";
 			tensionFile << outer[j][2];
@@ -309,6 +309,9 @@ void Data::saveTension(const std::string& file,int iteration){
 			tensionFile << "\t";
 			tensionFile << outer[j][6];
 
+			tensionFile << "\t";
+			tensionFile << outer[j][7];
+			
 			tensionFile << std::endl;
 		}
 
@@ -783,4 +786,25 @@ coordinates_t Data::getCellZCenter(){
 }
 coordinates_t Data::getCellRCenter(){
 	return centerR;
+}
+
+
+void Data::scaleMesh(coordinates_t z,coordinates_t r){
+
+	std::map<ids_t,Point>& points = this->getPoints();
+
+	for(ids_t i = 0;i < points.size();++i )
+	{
+		points[i].setZ(scale(points[i].getZ()-this->minZ,this->maxZ-this->minZ,z));
+		points[i].setR(scale(points[i].getR()-this->minR,this->maxR-this->minR,r));
+	}
+
+}
+
+coordinates_t Data::scale(coordinates_t current_value,coordinates_t max_value,coordinates_t scaling_factor){
+
+	coordinates_t scaling = 1 + (pow((1 - (current_value / max_value)),5) * scaling_factor);
+
+    return current_value / scaling;
+
 }
